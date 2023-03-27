@@ -5,7 +5,16 @@ import styles from '@/styles/Home.module.css'
 
 const inter = Inter({ subsets: ['latin'] })
 
-export default function Home() {
+export async function getStaticProps(context){
+  const res = await fetch('http://localhost:8000/package')
+  const message = await res.json();
+
+  return { 
+    props: {message}
+    }  ;
+}
+
+export default function Home({message}) {
 
   function handleClick() {
     alert('clicked!');
@@ -25,7 +34,7 @@ export default function Home() {
           <p>By: Ben Brown</p>
         </div>
         <div>
-          <a href="http://localhost:3000/api/gotest" target="_blank">
+          <a href="http://localhost:8000/package" target="_blank">
             <button> Sample API button </button>
           </a>
         </div>
@@ -34,6 +43,7 @@ export default function Home() {
             hello
           </button>
         </div>
+        <div>message: {message.message}</div>
       </main>
     </>
   )
