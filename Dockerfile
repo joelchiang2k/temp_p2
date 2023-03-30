@@ -7,8 +7,6 @@ COPY . .
 
 RUN npm install
 
-RUN npm run build
-
 # Backend Dockerfile
 FROM golang:latest
 
