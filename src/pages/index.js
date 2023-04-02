@@ -6,7 +6,7 @@ import styles from '@/styles/Home.module.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export async function getStaticProps(context){
-  const res = await fetch('http://localhost:8000/package')
+  const res = await fetch('http://localhost:8080/package')
   const message = await res.json();
 
   return { 
@@ -34,7 +34,7 @@ export default function Home({message}) {
           <p>By: Ben Brown</p>
         </div>
         <div>
-          <a href="http://localhost:8000/package" target="_blank">
+          <a href="http://localhost:8080/package" target="_blank">
             <button> Sample API button </button>
           </a>
         </div>
