@@ -21,7 +21,7 @@ func main() {
 	}
 
 	api.GET("", CreatePackage)
-	router.Run(":8080")
+	router.Run(":8001")
 }
 
 func CreatePackage(c *gin.Context) {
