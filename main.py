@@ -15,11 +15,12 @@ app = Flask(__name__)
 def post_package():
     auth = None
     auth_header = request.headers.get('X-Authorization')
-    if not auth_header:
-        return abort(409, "Authentication failed (e.g. AuthenticationToken invalid or does not exist)")
-    #need a function to auth X-auth headers
+    if not check_auth(auth_header):
+        # add some auth function
+        return abort(401, "Authentication failed (e.g. AuthenticationToken invalid or does not exist)")
     
     query = request.get_json()
+    
     
     
     #read data from curl
@@ -36,12 +37,17 @@ def post_package():
 @app.route('/reset', methods=['DELETE'])
 def reset_registry():
     auth_header = request.headers.get('X-Authorization')
-    if not auth_header:
+    if not check_auth(auth_header):
         return abort(401, "You do not have permission to reset the registry.")
     
     ref = db.reference("/")
     ref.delete()
         
+        
+def check_auth(token):
+    #add actual auth later
+    if token is not None:
+        return True
 
 if __name__ == '__main__':
     app.run(debug=True)
