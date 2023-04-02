@@ -30,3 +30,10 @@ func CreatePackage(c *gin.Context) {
 		"message": "create package has not been implemented.",
 	})
 }
+
+func Reset(c *gin.Context) {
+	c.Header("Content-Type", "application/json")
+	c.JSON(http.StatusOK, gin.H {
+		"message": "delete package has not been implemented.",
+	})
+}
