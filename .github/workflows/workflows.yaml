@@ -13,8 +13,11 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
-    - name: install flake
-      run: pip install flake8
-    - name: run flake
-      run: |
-        flake8 .
+    - name: Setup Node
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14.x'
+    - name: Install dependencies
+      run: npm Install
+    - name: Lint JS files
+      run: npx eslint .
