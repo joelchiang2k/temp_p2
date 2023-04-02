@@ -13,7 +13,7 @@ func main() {
 
 	api := router.Group("/package")
 	{
-		api.GET("/", func(c *gin.Context){
+		api.GET("/", func(c *gin.Context) {
 			c.JSON(http.StatusOK, gin.H{
 				"message": "hello",
 			})
@@ -21,12 +21,12 @@ func main() {
 	}
 
 	api.GET("", CreatePackage)
-	router.Run(":8000")
+	router.Run(":8080")
 }
 
 func CreatePackage(c *gin.Context) {
 	c.Header("Content-Type", "application/json")
-	c.JSON(http.StatusOK, gin.H {
+	c.JSON(http.StatusOK, gin.H{
 		"message": "create package has not been implemented.",
 	})
 }
