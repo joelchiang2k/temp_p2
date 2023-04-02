@@ -1,5 +1,26 @@
-steps:
-- name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '-t', 'gcr.io/project461p/temp_p2:9dd2963d92064524f03047cbabd65190d805f7c9:$SHORT_SHA', '.' ]
-- name: 'gcr.io/cloud-builders/docker'
-  args: ['push', 'gcr.io/project461p/temp_p2:9dd2963d92064524f03047cbabd65190d805f7c9:$SHORT_SHA']
+name: CI/CD
+on:
+  push:
+    branches: [joel]
+  pull_request:
+    branches: [joel]
+    types: [closed]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: install flake
+      run: pip install flake8
+    - name: run flake
+      run: |
+        flake8 .
+    - name: 'gcr.io/cloud-builders/docker'
+      run: |
+        docker build -t gcr.io/project461p/temp_p2:$SHORT_SHA .
+    - name: 'gcr.io/cloud-builders/docker'
+      run: |
+        docker push gcr.io/project461p/temp_p2:$SHORT_SHA
