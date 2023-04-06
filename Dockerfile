@@ -18,7 +18,7 @@ RUN apt-get update && apt-get upgrade -y && \
     apt-get install -y nodejs
 
 RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
-
+ENV PORT=8001
 RUN apt-get install -y nodejs
 
 RUN npm install  
