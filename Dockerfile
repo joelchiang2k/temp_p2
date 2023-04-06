@@ -25,6 +25,6 @@ RUN npm install
 
 RUN go build -o main .
 
-CMD ["sh", "-c", "go run main.go & npm run dev"]
+CMD ["sh", "-c", "go run main.go & npm run lol"]
 
 
