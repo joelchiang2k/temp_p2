@@ -1,0 +1,19 @@
+steps:
+  # Build the Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/461-container', '.']
+
+  # Publish the Docker image to Google Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/461-container']
+
+  # Run the Docker container and map ports
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'run'
+      - '-p'
+      - '3001:3000'
+      - '-p'
+      - '9000:9876'
+      - 'gcr.io/$PROJECT_ID/461-container'
+
