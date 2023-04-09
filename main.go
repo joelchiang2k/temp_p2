@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -10,11 +11,39 @@ type JSON_LIST struct {
 	Name string `json:"Name"`
 }
 
+type PackageCreate struct {
+	URL string `json:"url"`
+}
+
+func CORS(c *gin.Context) {
+
+	// First, we add the headers with need to enable CORS
+	// Make sure to adjust these headers to your needs
+	c.Header("Access-Control-Allow-Origin", "*")
+	c.Header("Access-Control-Allow-Methods", "*")
+	c.Header("Access-Control-Allow-Headers", "*")
+	c.Header("Content-Type", "application/json")
+
+	// Second, we handle the OPTIONS problem
+	if c.Request.Method != "OPTIONS" {
+		
+		c.Next()
+
+	} else {
+        
+		// Everytime we receive an OPTIONS request, 
+		// we just return an HTTP 200 Status Code
+		// Like this, Angular can now do the real 
+		// request using any other method than OPTIONS
+		c.AbortWithStatus(http.StatusOK)
+	}
+}
+
 func main() {
 	router := gin.Default()
 
 	//router.Use(static.Serve("/", static.LocalFile("./src", true)))
-
+	router.Use(CORS)
 	api := router.Group("/package")
 	{
 		/*api.GET("/", func(c *gin.Context){
@@ -22,7 +51,7 @@ func main() {
 				"message": "hello",
 			})
 		})*/
-		api.GET("", CreatePackage)
+		api.POST("", CreatePackage)
 		api.GET("/:{id}", RetreivePackage)
 	}
 	
@@ -71,9 +100,19 @@ func GetPackageList(c *gin.Context) {
 }
 
 func CreatePackage(c *gin.Context) {
-	c.Header("Content-Type", "application/json")
-	c.JSON(http.StatusOK, gin.H {
-		"message": "create package has not been implemented.",
+	
+	//creates new variable of {struct} type and binds data from incoming request to new variable
+	//returns error on bad req
+	var url PackageCreate
+
+	if err := c.BindJSON(&url); err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	//response
+	c.JSON(200, gin.H{
+		"url": url.URL,
 	})
 }
 
