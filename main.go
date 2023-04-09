@@ -6,13 +6,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type JSON_LIST struct {
+type GetPackageListJSON struct {
 	Version string `json:"Version"`
 	Name string `json:"Name"`
 }
 
 type PackageCreate struct {
-	URL string `json:"url"`
+	Content string `json:"Content`
+	URL string `json:"URL"`
+	//JSProgram
 }
 
 func CORS(c *gin.Context) {
@@ -26,15 +28,10 @@ func CORS(c *gin.Context) {
 
 	// Second, we handle the OPTIONS problem
 	if c.Request.Method != "OPTIONS" {
-		
 		c.Next()
-
 	} else {
-        
-		// Everytime we receive an OPTIONS request, 
-		// we just return an HTTP 200 Status Code
-		// Like this, Angular can now do the real 
-		// request using any other method than OPTIONS
+		//If options request is received, return 200 so that the program can process
+		// a different request
 		c.AbortWithStatus(http.StatusOK)
 	}
 }
@@ -46,18 +43,21 @@ func main() {
 	router.Use(CORS)
 	api := router.Group("/package")
 	{
-		/*api.GET("/", func(c *gin.Context){
-			c.JSON(http.StatusOK, gin.H{
-				"message": "hello",
-			})
-		})*/
 		api.POST("", CreatePackage)
 		api.GET("/:{id}", RetreivePackage)
+		//api.PUT("/:{id}", ADD FUNC FOR PUT)
+		//api.DELETE("/:{id}", ADD FUN FOR DELETE)
+		//api.
 	}
 	
 	packageList := router.Group("/packages")
 	{
 		packageList.POST("", GetPackageList)	
+	}
+
+	resetRoute := router.Group("/reset")
+	{
+		reset.DELETE("", Reset)
 	}
 
 	//api.GET("", CreatePackage)
@@ -85,7 +85,7 @@ func GetPackageList(c *gin.Context) {
 	//array is needed in data -> how does this work?!
 
 	//struct for json
-	var ex JSON_LIST
+	var ex GetPackageListJSON
 
 	//set headers to application/json and require authentication
 	c.Header("Content-Type", "application/json")
@@ -96,7 +96,6 @@ func GetPackageList(c *gin.Context) {
 	c.JSON(200, gin.H{"data": []interface{}{ex}})
 	
 	//add error codes 400 and 413
-
 }
 
 func CreatePackage(c *gin.Context) {
@@ -109,6 +108,8 @@ func CreatePackage(c *gin.Context) {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
+
+	//process zip and upload to db
 
 	//response
 	c.JSON(200, gin.H{
