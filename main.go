@@ -1,10 +1,22 @@
 package main
 
 import (
+	"bufio"
+	"context"
+	"encoding/base64"
+	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
+	"os"
+	"strings"
 
+	//"database/gcpbucket"
+	"cloud.google.com/go/storage"
 	"github.com/gin-gonic/gin"
 )
+
+//project id: perceptive-tape-383118
 
 type GetPackageListJSON struct {
 	Version string `json:"Version"`
@@ -12,10 +24,20 @@ type GetPackageListJSON struct {
 }
 
 type PackageCreate struct {
-	Content string `json:"Content`
+	Content string `json:"Content"`
 	URL string `json:"URL"`
 	//JSProgram
 }
+
+/*func DbInit(c gin.Context){
+	ctx := context.Background()
+	client, err := storage.NewClient(ctx)
+	if err != nil {
+		fmt.Println(err)
+	}
+	c.Set("gcpBucket", client)
+	c.Next()
+}*/
 
 func CORS(c *gin.Context) {
 
@@ -25,6 +47,13 @@ func CORS(c *gin.Context) {
 	c.Header("Access-Control-Allow-Methods", "*")
 	c.Header("Access-Control-Allow-Headers", "*")
 	c.Header("Content-Type", "application/json")
+
+	/*ctx := context.Background()
+	client, err := storage.NewClient(ctx)
+	if err != nil {
+		fmt.Println(err)
+	}
+	c.Set("gcpBucket", client)*/
 
 	// Second, we handle the OPTIONS problem
 	if c.Request.Method != "OPTIONS" {
@@ -39,8 +68,16 @@ func CORS(c *gin.Context) {
 func main() {
 	router := gin.Default()
 
+	/*ctx := context.Background()
+	c, err := storage.NewClient(ctx)
+	if err != nil {
+		fmt.Println(err)
+	}
+	client = c*/
+
 	//router.Use(static.Serve("/", static.LocalFile("./src", true)))
 	router.Use(CORS)
+	//router.Use(DbInit)
 	api := router.Group("/package")
 	{
 		api.POST("", CreatePackage)
@@ -57,7 +94,7 @@ func main() {
 
 	resetRoute := router.Group("/reset")
 	{
-		reset.DELETE("", Reset)
+		resetRoute.DELETE("", Reset)
 	}
 
 	//api.GET("", CreatePackage)
@@ -99,7 +136,14 @@ func GetPackageList(c *gin.Context) {
 }
 
 func CreatePackage(c *gin.Context) {
-	
+	ctx := context.Background()
+	client, err := storage.NewClient(ctx)
+	if err != nil {
+		fmt.Println(err)
+	}
+	//ctx, cancel := context.WithTimeout(ctx, time.Second*10)	
+	//defer cancel()
+
 	//creates new variable of {struct} type and binds data from incoming request to new variable
 	//returns error on bad req
 	var url PackageCreate
@@ -110,11 +154,88 @@ func CreatePackage(c *gin.Context) {
 	}
 
 	//process zip and upload to db
+	GetZip(url.URL)
+	//b64_string := EncodeZipFile()
+
+	var projectID string = "perceptive-tape-383118"
+
+	//client, ok:= c.MustGet("gcpBucket").(*storage.Client)
+	/*if !ok {
+		fmt.Println(ok)
+	}*/
+
+	bkt := client.Bucket("new-461-bucket")
+	if err := bkt.Create(ctx, projectID, nil); err != nil {
+		// TODO: Handle error.
+		fmt.Println(err)
+	}
+	/*obj := bucket.Object("data")
+	w := obj.NewWriter(ctx)
+	if _, err := fmt.Fprintf(w, "This object contains text.\n"); err != nil {
+		// TODO: Handle error.
+		fmt.Println(err)
+	}
+	if err := w.Close(); err != nil {
+		fmt.Println(err)
+	}*/
 
 	//response
 	c.JSON(200, gin.H{
 		"url": url.URL,
 	})
+}
+
+func EncodeZipFile() (b64 string) {
+	//get working directory
+	directory, err := os.Getwd()
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	file, _ := os.Open(directory + "/zip_files/out.zip")
+
+	reader := bufio.NewReader(file)
+	content, _ := ioutil.ReadAll(reader)
+
+	encodedString := base64.StdEncoding.EncodeToString(content)
+
+	return encodedString
+}
+
+
+func GetZip(url string) {
+
+	//split owner and repository strings from original url for later use
+	split := strings.Split(url, "/")
+	owner := split[len(split)-2]
+	repo := split[len(split)-1]
+
+	//get current working directory for use in filepath
+	directory, err := os.Getwd()
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(directory)
+
+	//create out file in zip_files dir
+	outFile, err := os.Create(directory + "/zip_files/out.zip")
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	//send get request to correct git repo and get zip file contents
+	resp, err := http.Get("https://github.com/" + owner + "/" + repo + "/archive/master.zip")
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer resp.Body.Close()	
+
+	//write response body to zip file created above
+	_, err = io.Copy(outFile, resp.Body)
+	if err != nil {
+		fmt.Println(err)
+	}
+	
 }
 
 func Reset(c *gin.Context) {
