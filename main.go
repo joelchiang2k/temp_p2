@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"context"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -11,8 +10,12 @@ import (
 	"os"
 	"strings"
 
+	"ex/part2/models"
+
+	_ "github.com/lib/pq"
+
 	//"database/gcpbucket"
-	"cloud.google.com/go/storage"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -29,16 +32,6 @@ type PackageCreate struct {
 	//JSProgram
 }
 
-/*func DbInit(c gin.Context){
-	ctx := context.Background()
-	client, err := storage.NewClient(ctx)
-	if err != nil {
-		fmt.Println(err)
-	}
-	c.Set("gcpBucket", client)
-	c.Next()
-}*/
-
 func CORS(c *gin.Context) {
 
 	// First, we add the headers with need to enable CORS
@@ -47,13 +40,6 @@ func CORS(c *gin.Context) {
 	c.Header("Access-Control-Allow-Methods", "*")
 	c.Header("Access-Control-Allow-Headers", "*")
 	c.Header("Content-Type", "application/json")
-
-	/*ctx := context.Background()
-	client, err := storage.NewClient(ctx)
-	if err != nil {
-		fmt.Println(err)
-	}
-	c.Set("gcpBucket", client)*/
 
 	// Second, we handle the OPTIONS problem
 	if c.Request.Method != "OPTIONS" {
@@ -65,25 +51,34 @@ func CORS(c *gin.Context) {
 	}
 }
 
+/*func DBInit() {
+	psqlinfo := fmt.Sprintf("host=%s port=%d user=%s dbname=%s sslmode=disable", host, port, user, dbname)
+
+	db, err := sql.Open("postgres", psqlinfo)
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	err = db.Ping()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("db connected :)")
+}*/
+
 func main() {
 	router := gin.Default()
 
-	/*ctx := context.Background()
-	c, err := storage.NewClient(ctx)
-	if err != nil {
-		fmt.Println(err)
-	}
-	client = c*/
-
-	//router.Use(static.Serve("/", static.LocalFile("./src", true)))
+	//DBInit()
+	models.ConnectDatabase()
 	router.Use(CORS)
-	//router.Use(DbInit)
 	api := router.Group("/package")
 	{
 		api.POST("", CreatePackage)
 		api.GET("/:{id}", RetreivePackage)
 		//api.PUT("/:{id}", ADD FUNC FOR PUT)
-		//api.DELETE("/:{id}", ADD FUN FOR DELETE)
+		api.DELETE("/:{id}", DeletePackageById)
 		//api.
 	}
 	
@@ -109,6 +104,17 @@ func main() {
 	}
 }*/
 
+func DeletePackageById(c *gin.Context) {
+	var packageToDelete models.PackageCreate
+	
+	if err := models.DB.Where("id = ?", c.Param("{id}")).First(&packageToDelete).Error; err != nil {
+		c.JSON(404, "Package does not exist.")
+	}
+
+	models.DB.Delete(&packageToDelete)
+
+	c.JSON(200, "Package is deleted.")
+}
 func RetreivePackage(c *gin.Context){
 	c.Header("Content-Type", "application/json")
 	c.JSON(http.StatusOK, gin.H {
@@ -136,14 +142,6 @@ func GetPackageList(c *gin.Context) {
 }
 
 func CreatePackage(c *gin.Context) {
-	ctx := context.Background()
-	client, err := storage.NewClient(ctx)
-	if err != nil {
-		fmt.Println(err)
-	}
-	//ctx, cancel := context.WithTimeout(ctx, time.Second*10)	
-	//defer cancel()
-
 	//creates new variable of {struct} type and binds data from incoming request to new variable
 	//returns error on bad req
 	var url PackageCreate
@@ -155,34 +153,19 @@ func CreatePackage(c *gin.Context) {
 
 	//process zip and upload to db
 	GetZip(url.URL)
-	//b64_string := EncodeZipFile()
+	b64_string := EncodeZipFile()
+	split := strings.Split(url.URL, "/")
+	repo := split[len(split)-1]
 
-	var projectID string = "perceptive-tape-383118"
-
-	//client, ok:= c.MustGet("gcpBucket").(*storage.Client)
-	/*if !ok {
-		fmt.Println(ok)
-	}*/
-
-	bkt := client.Bucket("new-461-bucket")
-	if err := bkt.Create(ctx, projectID, nil); err != nil {
-		// TODO: Handle error.
-		fmt.Println(err)
-	}
-	/*obj := bucket.Object("data")
-	w := obj.NewWriter(ctx)
-	if _, err := fmt.Fprintf(w, "This object contains text.\n"); err != nil {
-		// TODO: Handle error.
-		fmt.Println(err)
-	}
-	if err := w.Close(); err != nil {
-		fmt.Println(err)
-	}*/
+	newObject := models.PackageCreate{Name: repo, Content: b64_string}
+	models.DB.Create(&newObject)
 
 	//response
-	c.JSON(200, gin.H{
+	/*c.JSON(200, gin.H{
 		"url": url.URL,
-	})
+	})*/
+	c.JSON(201, gin.H{"data": newObject})
+	
 }
 
 func EncodeZipFile() (b64 string) {

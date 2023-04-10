@@ -22,6 +22,7 @@ export default function Home({message}) {
   }
 
   const [url, setURL] = useState('');
+  const [postId, setPostId] = useState([]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -31,9 +32,7 @@ export default function Home({message}) {
       method: 'POST',
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(urlStruct)
-    }).then(() => {
-      console.log(JSON.stringify(urlStruct))
-    })
+    })//add response handling?
   }
 
   return (
