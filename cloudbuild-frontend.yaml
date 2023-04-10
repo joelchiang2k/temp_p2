@@ -6,3 +6,5 @@ steps:
     args: ['build', '-t', '461-image', '.']
     env:
       - 'BACKEND_API=${_BACKEND_API}'
+images:
+  - '461-image'    
