@@ -3,11 +3,11 @@
 # Uses the docker build step to build an image called my-image
 steps:
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/461-Project/461-image:latest', '.']
+    args: ['build', '-t', '461-image', '.']
     env:
       - 'BACKEND_API=${_BACKEND_API}'
   
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/461-Project/461-image:latest']
+    args: ['push', '461-image']
 images:
-  - 'gcr.io/461-Project/461-image:latest' 
+  - '461-image'
