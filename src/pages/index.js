@@ -6,15 +6,8 @@ import styles from '@/styles/Home.module.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export async function getStaticProps(context){
-  const res = await fetch('http://localhost:9876/package',{
-    method: "GET",
-    headers: {
-          // update with your user-agent
-          "User-Agent":
-            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.89 Safari/537.36", 
-          Accept: "application/json; charset=UTF-8",
-        },
-  })
+  const res = await fetch(`http://${process.env.BACKEND_API}/package`)
+  console.log(res)
   const message = await res.json();
   return { 
     props: {message}

@@ -5,11 +5,13 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "3001:3000"
+      - 3001:3000
 
   backend:
     build:
       context: .
       dockerfile: Dockerfile-backend
     ports:
-      - "8001:8001"
+      - 9876:9876
+    environment:
+      PORT: 9876
