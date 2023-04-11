@@ -42,7 +42,7 @@ export default function Home({message}) {
           <p>By: Ben Brown</p>
         </div>
         <div>
-          <a href="http://localhost:9876/package" target="_blank">
+          <a href={`http://${process.env.BACKEND_API}/package`} target="_blank">
             <button> Sample API button </button>
           </a>
         </div>
