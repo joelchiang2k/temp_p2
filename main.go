@@ -115,6 +115,7 @@ func DeletePackageById(c *gin.Context) {
 
 	c.JSON(200, "Package is deleted.")
 }
+
 func RetreivePackage(c *gin.Context){
 	c.Header("Content-Type", "application/json")
 	c.JSON(http.StatusOK, gin.H {
@@ -222,8 +223,11 @@ func GetZip(url string) {
 }
 
 func Reset(c *gin.Context) {
-	c.Header("Content-Type", "application/json")
-	c.JSON(http.StatusOK, gin.H {
-		"message": "delete package has not been implemented.",
-	})
+	
+	if tx := models.DB.Exec("TRUNCATE TABLE package_creates RESTART IDENTITY"); tx.Error != nil {
+		//change
+		panic(tx.Error)
+	}
+
+	c.JSON(200, "Registry is reset.")
 }
