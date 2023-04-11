@@ -5,13 +5,21 @@ import styles from '@/styles/Home.module.css'
 
 const inter = Inter({ subsets: ['latin'] })
 
-export async function getStaticProps(context){
-  const res = await fetch(`http://${process.env.BACKEND_API}/package`)
-  console.log(res)
-  const message = await res.json();
-  return { 
-    props: {message}
-    }  ;
+export async function getStaticProps(context) {
+  try {
+    const res = await fetch(`http://${process.env.BACKEND_API}/package`);
+    const message = await res.json();
+    return {
+      props: { message }
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      props: {
+        message: "An error occurred while fetching data from the backend."
+      }
+    };
+  }
 }
 
 export default function Home({message}) {
