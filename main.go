@@ -117,11 +117,20 @@ func DeletePackageById(c *gin.Context) {
 }
 
 func RetreivePackage(c *gin.Context){
-	c.Header("Content-Type", "application/json")
-	c.JSON(http.StatusOK, gin.H {
-		//access {id} from dynamic route which can be passed into db for processing
-		"param": c.Param("{id}"),
-	})
+	//c.Header("Content-Type", "application/json")
+	var packageToRetreive models.PackageCreate
+	
+	//change so that if id is missing return error
+	if c.Param("{id}") == "/"{
+		c.JSON(400, "There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
+	}else if err := models.DB.Where("id = ?", c.Param("{id}")).First(&packageToRetreive).Error; err != nil {
+		c.JSON(404, "Package does not exist.")
+	}else{ 
+		c.JSON(200, gin.H {
+			//access {id} from dynamic route which can be passed into db for processing
+			"data": []interface{}{packageToRetreive},
+		})
+	}
 	//errors 400 (missing PackageID/Auth token/not authorized) or 404 (package not found)
 }
 
