@@ -8,7 +8,7 @@ const inter = Inter({ subsets: ['latin'] })
 export async function getStaticProps(context) {
   try {
     console.log("process: ", process.env.BACKEND_API)
-    const res = await fetch(`https://${process.env.BACKEND_API}/package`);
+    const res = await fetch(`https://${process.env.BACKEND_API}`);
     const message = await res.json();
 
     return {
@@ -44,7 +44,7 @@ export default function Home({message}) {
           <p>By: Ben Brown</p>
         </div>
         <div>
-          <a href={`https://${process.env.BACKEND_API}/package`} target="_blank">
+          <a href={`https://${process.env.BACKEND_API}`} target="_blank">
             <button> Sample API button </button>
           </a>
         </div>
