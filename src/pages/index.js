@@ -7,9 +7,10 @@ const inter = Inter({ subsets: ['latin'] })
 
 export async function getStaticProps(context) {
   try {
+    console.log("process: ", process.env.BACKEND_API)
     const res = await fetch(`http://${process.env.BACKEND_API}/package`);
     const message = await res.json();
-    console.log(message)
+
     return {
       props: { message }
     };
