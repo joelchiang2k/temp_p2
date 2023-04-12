@@ -9,6 +9,7 @@ export async function getStaticProps(context) {
   try {
     const res = await fetch(`http://${process.env.BACKEND_API}/package`);
     const message = await res.json();
+    console.log(message)
     return {
       props: { message }
     };
