@@ -5,7 +5,7 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 'gcr.io/project461p/461-image', '.']
     env:
-      - 'BACKEND_API=${BACKEND_API}'
+      - 'BACKEND_API=$${BACKEND_API}'
   
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'gcr.io/project461p/461-image']
