@@ -2,22 +2,37 @@ import Head from 'next/head'
 import Image from 'next/image'
 import { Inter } from 'next/font/google'
 import styles from '@/styles/Home.module.css'
+import { useState } from 'react'
 
 const inter = Inter({ subsets: ['latin'] })
 
-export async function getStaticProps(context){
+/*export async function getStaticProps(context){
   const res = await fetch('http://localhost:8000/package')
-  const message = await res.json();
+const message = await res.json();
 
   return { 
     props: {message}
     }  ;
-}
+}*/
 
 export default function Home({message}) {
 
   function handleClick() {
     alert('clicked!');
+  }
+
+  const [url, setURL] = useState('');
+  const [postId, setPostId] = useState([]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const urlStruct = { url };
+    
+    fetch('http://localhost:8000/package', {
+      method: 'POST',
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(urlStruct)
+    })//add response handling?
   }
 
   return (
@@ -33,17 +48,27 @@ export default function Home({message}) {
           <h1> Welcome to 461 Part 2! </h1>
           <p>By: Ben Brown</p>
         </div>
-        <div>
+  {/*      <div>
           <a href="http://localhost:8000/package" target="_blank">
             <button> Sample API button </button>
           </a>
-        </div>
+  </div>*/}
         <div>
           <button onClick={handleClick}>
             hello
           </button>
         </div>
-        <div>message: {message.message}</div>
+        {/*<div>message: {message.message}</div>*/}
+        <form onSubmit={handleSubmit}>
+          <label>Enter URL</label>
+          <input
+            type="text" 
+            required
+            value={url}
+            onChange={(e) => setURL(e.target.value)}
+            />
+          <button>Submit</button>
+        </form>
       </main>
     </>
   )
