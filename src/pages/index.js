@@ -28,7 +28,7 @@ export default function Home({message}) {
     e.preventDefault();
     const urlStruct = { url };
     
-    fetch('http://localhost:8000/package', {
+    fetch(`${process.env.BACKEND_API}`, {
       method: 'POST',
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(urlStruct)
