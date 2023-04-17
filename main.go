@@ -21,16 +21,21 @@ import (
 
 //project id: perceptive-tape-383118
 
-type GetPackageListJSON struct {
-	Version string `json:"Version"`
+type PackageMetadata struct {
+	//Version string `json:"Version"`
 	Name string `json:"Name"`
+	//ID string `json:"id"`
 }
 
 type PackageCreate struct {
+	Name string `json:"packageName"`
+	Version string `json:"packageVersion"`
 	Content string `json:"Content"`
 	URL string `json:"URL"`
 	//JSProgram
 }
+
+
 
 func CORS(c *gin.Context) {
 
@@ -51,22 +56,6 @@ func CORS(c *gin.Context) {
 	}
 }
 
-/*func DBInit() {
-	psqlinfo := fmt.Sprintf("host=%s port=%d user=%s dbname=%s sslmode=disable", host, port, user, dbname)
-
-	db, err := sql.Open("postgres", psqlinfo)
-	if err != nil {
-		panic(err)
-	}
-	defer db.Close()
-
-	err = db.Ping()
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("db connected :)")
-}*/
-
 func main() {
 	router := gin.Default()
 
@@ -79,7 +68,7 @@ func main() {
 		api.GET("/:{id}", RetreivePackage)
 		//api.PUT("/:{id}", ADD FUNC FOR PUT)
 		api.DELETE("/:{id}", DeletePackageById)
-		//api.
+		//api.GET("/:{id}/rate, RatePackage")
 	}
 	
 	packageList := router.Group("/packages")
@@ -112,12 +101,13 @@ func DeletePackageById(c *gin.Context) {
 	}
 
 	models.DB.Delete(&packageToDelete)
-
 	c.JSON(200, "Package is deleted.")
 }
 
 func RetreivePackage(c *gin.Context){
 	//c.Header("Content-Type", "application/json")
+
+	//create variable to hold response data
 	var packageToRetreive models.PackageCreate
 	
 	//change so that if id is missing return error
@@ -138,7 +128,7 @@ func GetPackageList(c *gin.Context) {
 	//array is needed in data -> how does this work?!
 
 	//struct for json
-	var ex GetPackageListJSON
+	var ex PackageMetadata
 
 	//set headers to application/json and require authentication
 	c.Header("Content-Type", "application/json")
@@ -149,6 +139,55 @@ func GetPackageList(c *gin.Context) {
 	c.JSON(200, gin.H{"data": []interface{}{ex}})
 	
 	//add error codes 400 and 413
+}
+
+func RatePackage(c *gin.Context) {
+	var packageToRate models.PackageCreate	
+
+	if c.Param("{id}") == "/"{
+		c.JSON(400, "There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
+	}else if err := models.DB.Where("id = ?", c.Param("{id}")).First(&packageToRate).Error; err != nil {
+		c.JSON(404, "Package does not exist.")
+	}
+
+	//DANIEL ENTER RATE STUFF HERE
+	//could insert functions under a subdirectory called rateFunctions/
+	//then call like rateFunctions.netScore(), rateFunctions.Responsiveness(), etc...
+
+	//if anything in rating funcs fail
+	//c.JSON(500, "The package rating system choked on at least one of the metrics.")
+
+	//else everything ok
+	//c.JSON(200, gin.H{
+		//ratingStruct
+	//})
+}
+
+//finish
+func UpdatePackage(c *gin.Context) {
+	var pkg models.PackageCreate
+
+	//get package if exists in db
+	//incorrect format in route string
+	if c.Param("{id}") == "/"{
+		c.JSON(400, "There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
+	}else if err := models.DB.Where("id = ?", c.Param("{id}")).First(&pkg).Error; err != nil {
+		//package not found -> return error 404
+		c.JSON(404, "Package does not exist.")
+	}
+
+	var packageToUpdate PackageCreate
+	//validate name, ID, version are matched
+	if err := c.BindJSON(&packageToUpdate); err != nil {
+		c.AbortWithError(400, err)
+		return
+	}
+	//ADD VERSION
+	//if(packageToUpdate.Name == pkg.Name && c.Param("{id}") == string(pkg.ID)){
+		
+	//models.DB.Update("Content", packageToUpdate.Content)
+	//}
+
 }
 
 func CreatePackage(c *gin.Context) {
@@ -164,10 +203,10 @@ func CreatePackage(c *gin.Context) {
 	//process zip and upload to db
 	GetZip(url.URL)
 	b64_string := EncodeZipFile()
-	split := strings.Split(url.URL, "/")
-	repo := split[len(split)-1]
+	//split := strings.Split(url.URL, "/")
+	//repo := split[len(split)-1]
 
-	newObject := models.PackageCreate{Name: repo, Content: b64_string}
+	newObject := models.PackageCreate{Name: url.Name, Version: url.Version, Content: b64_string, URL: url.URL}
 	models.DB.Create(&newObject)
 
 	//response
