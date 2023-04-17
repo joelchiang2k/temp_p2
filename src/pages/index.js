@@ -28,7 +28,7 @@ export default function Home({message}) {
     e.preventDefault();
     const urlStruct = { url };
     
-    fetch(`${process.env.BACKEND_API}`, {
+    fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}`, {
       method: 'POST',
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(urlStruct)
