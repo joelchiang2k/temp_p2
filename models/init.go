@@ -9,8 +9,8 @@ var DB *gorm.DB
 
 func ConnectDatabase() {
 
-	//dbURL := "postgres://postgres@localhost:5432/ben_temp"
-	dsn := "host=146.148.72.91 user=postgres password=461dbpassword dbname=postgres port=5432 sslmode=disable"
+	dsn := "postgres://postgres@localhost:5432/ben_temp"
+	//dsn := "host=146.148.72.91 user=postgres password=461dbpassword dbname=postgres port=5432 sslmode=disable"
 	database, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic(err)
