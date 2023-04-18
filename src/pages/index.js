@@ -29,7 +29,10 @@ export default function Home({message}) {
   const [zipData, setZipData] = useState('')
 
   const handleFileSubmit = (base64Data) => {
-    setFileData(base64Data)
+    //setFileData(base64Data)
+    setZipData(base64Data)
+    //e.preventDefault();
+    //sendPostRequest(b64String);
   };
 
   const handleSubmit = (e) => {
@@ -43,6 +46,14 @@ export default function Home({message}) {
       body: JSON.stringify(dataStruct)
     })//add response handling?
   }
+
+  const sendPostRequest = (b64String) => {
+      fetch('http://localhost:8000/package', {
+          method: 'POST',
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ Content: b64String})
+      })
+  };//response?
 
   /*function FileInput() {
     const [selectedZip, setSelectedZip] = useState(null)
@@ -74,22 +85,6 @@ export default function Home({message}) {
         {/*<div>message: {message.message}</div>*/}
         <h3> Create Package From URL</h3>
         <form onSubmit={handleSubmit}>
-          {/*<label> Name </label>
-          <input
-            type="text" 
-            required
-            value={packageName}
-            onChange={(e) => setName(e.target.value)}
-            />
-          <hr/>
-          <label> Version </label>
-          <input
-            type="text" 
-            required
-            value={packageVersion}
-            onChange={(e) => setVersion(e.target.value)}
-            />
-<hr/>*/}
           <label>Enter URL</label>
           <input
             type="text" 

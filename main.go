@@ -226,7 +226,40 @@ func CreatePackage(c *gin.Context) {
 		models.DB.Create(&newObject)
 		
 		c.JSON(201, gin.H{"data": newObject})
-	}//else if content set
+	}else if(newPackage.Content != ""){
+		decodedString, err := base64.StdEncoding.DecodeString(newPackage.Content)	
+		if err != nil {
+			panic(err)
+		}
+
+		directory, err := os.Getwd()
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		//create out file in zip_files dir
+		outFile, err := os.Create(directory + "/zip_files/out.zip")
+		if err != nil {
+			fmt.Println(err)
+		}
+		defer outFile.Close()		
+
+		_, err = outFile.Write(decodedString)
+		if err != nil {
+			fmt.Println(err)
+		}
+		
+		var packageJsonObj PackageJsonInfo
+		getPackageJsonInfo(&packageJsonObj)
+
+		split := strings.Split(packageJsonObj.Homepage, "/")
+		repo := split[len(split)-1]
+
+		newObject := models.PackageCreate{Name: repo, Version: packageJsonObj.Version, Content: newPackage.Content, URL: packageJsonObj.Homepage}
+		models.DB.Create(&newObject)
+		
+		c.JSON(201, gin.H{"data": newObject})
+	}
 	
 }
 
@@ -266,6 +299,7 @@ func GetZip(url string) {
 	if err != nil {
 		fmt.Println(err)
 	}
+	defer outFile.Close()
 
 	//send get request to correct git repo and get zip file contents
 	resp, err := http.Get("https://github.com/" + owner + "/" + repo + "/archive/master.zip")
@@ -298,14 +332,15 @@ func getPackageJsonInfo(packageJsonObj *PackageJsonInfo) {
 		fmt.Println(err)
 	}
 
+	//open zipfile
 	zipFile, err := zip.OpenReader(directory + "/zip_files/out.zip")
 	if err != nil {
 		panic(err)
 	}
 	defer zipFile.Close()
 
+	//find name of root directory for use in unmarshalling package.json data
 	directoryCounter := make(map[string]int)
-
 	for _, fileName := range zipFile.File {
 		directories := splitPaths(fileName.Name)
 		if len(directories) > 0	{
@@ -345,7 +380,6 @@ func getPackageJsonInfo(packageJsonObj *PackageJsonInfo) {
 		panic("No package.json found in github repository")
 	}
 
-	//file, err := getPackageJson(&zipFile.Reader, )
 	err = json.Unmarshal(data, packageJsonObj)
 	if err != nil {
 		panic(err)
