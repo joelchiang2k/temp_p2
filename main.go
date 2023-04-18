@@ -1,16 +1,17 @@
 package main
 
 import (
+	"archive/zip"
 	"bufio"
 	"encoding/base64"
+	"encoding/json"
+	"ex/part2/models"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
-
-	"ex/part2/models"
 
 	_ "github.com/lib/pq"
 
@@ -21,10 +22,15 @@ import (
 
 //project id: perceptive-tape-383118
 
-type PackageMetadata struct {
+/*type PackageMetadata struct {
 	//Version string `json:"Version"`
 	Name string `json:"Name"`
 	//ID string `json:"id"`
+}*/
+
+type PackageJsonInfo struct {
+	Homepage string `json:"homepage"`
+	Version string `json:"Version"`
 }
 
 type PackageCreate struct {
@@ -128,7 +134,7 @@ func GetPackageList(c *gin.Context) {
 	//array is needed in data -> how does this work?!
 
 	//struct for json
-	var ex PackageMetadata
+	var ex PackageCreate
 
 	//set headers to application/json and require authentication
 	c.Header("Content-Type", "application/json")
@@ -193,27 +199,34 @@ func UpdatePackage(c *gin.Context) {
 func CreatePackage(c *gin.Context) {
 	//creates new variable of {struct} type and binds data from incoming request to new variable
 	//returns error on bad req
-	var url PackageCreate
+	var newPackage PackageCreate
 
-	if err := c.BindJSON(&url); err != nil {
+	if err := c.BindJSON(&newPackage); err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
-	//process zip and upload to db
-	GetZip(url.URL)
-	b64_string := EncodeZipFile()
-	//split := strings.Split(url.URL, "/")
-	//repo := split[len(split)-1]
+	if(newPackage.URL != "" && newPackage.Content != ""){
+		c.JSON(400, "URL and Content both set")
+	}else if(newPackage.URL != ""){
+		//process zip and upload to db
 
-	newObject := models.PackageCreate{Name: url.Name, Version: url.Version, Content: b64_string, URL: url.URL}
-	models.DB.Create(&newObject)
+		GetZip(newPackage.URL)
 
-	//response
-	/*c.JSON(200, gin.H{
-		"url": url.URL,
-	})*/
-	c.JSON(201, gin.H{"data": newObject})
+		//get info from package.json
+		var packageJsonObj PackageJsonInfo
+		getPackageJsonInfo(&packageJsonObj)
+
+
+		b64_string := EncodeZipFile()
+		split := strings.Split(newPackage.URL, "/")
+		repo := split[len(split)-1]
+		
+		newObject := models.PackageCreate{Name: repo, Version: packageJsonObj.Version, Content: b64_string, URL: newPackage.URL}
+		models.DB.Create(&newObject)
+		
+		c.JSON(201, gin.H{"data": newObject})
+	}//else if content set
 	
 }
 
@@ -247,7 +260,6 @@ func GetZip(url string) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println(directory)
 
 	//create out file in zip_files dir
 	outFile, err := os.Create(directory + "/zip_files/out.zip")
@@ -270,6 +282,75 @@ func GetZip(url string) {
 	
 }
 
+func splitPaths(path string) [] string {
+	paths := strings.Split(strings.Replace(path, "\\", "/", -1), "/")
+
+	if len(paths) > 1 && !strings.Contains(paths[len(paths) - 1], ".") {
+		paths = paths[:len(paths) - 1]
+	}
+
+	return paths
+}
+
+func getPackageJsonInfo(packageJsonObj *PackageJsonInfo) {
+	directory, err := os.Getwd()
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	zipFile, err := zip.OpenReader(directory + "/zip_files/out.zip")
+	if err != nil {
+		panic(err)
+	}
+	defer zipFile.Close()
+
+	directoryCounter := make(map[string]int)
+
+	for _, fileName := range zipFile.File {
+		directories := splitPaths(fileName.Name)
+		if len(directories) > 0	{
+			directoryCounter[directories[0]]++
+		}
+	}
+
+	max := 0
+	root := ""
+	for i, count := range directoryCounter {
+		if count > max {
+			max = count
+			root = i
+		}
+	}
+
+	fmt.Println(root)
+
+	var data []byte
+	for _, file := range zipFile.File {
+		//fmt.Println(file.Name)
+		if file.Name == (root + "/package.json") {
+			f, err := file.Open()
+			if err != nil {
+				panic(err)
+			}
+			defer f.Close()
+			data, err = ioutil.ReadAll(f)
+			if err != nil {
+				panic(err)
+			}
+			break
+		}
+	}
+
+	if data == nil {
+		panic("No package.json found in github repository")
+	}
+
+	//file, err := getPackageJson(&zipFile.Reader, )
+	err = json.Unmarshal(data, packageJsonObj)
+	if err != nil {
+		panic(err)
+	}
+}
 func Reset(c *gin.Context) {
 	
 	if tx := models.DB.Exec("TRUNCATE TABLE package_creates RESTART IDENTITY"); tx.Error != nil {

@@ -1,17 +1,25 @@
 import React, { useState } from 'react';
 
 function FileInput({ handleSubmit }) {
-    const [selectedFile, setSelectedFile] = useState(null);
+    //const [selectedFile, setSelectedFile] = useState(null);
+    const [b64String, setB64String] = useState('')
 
     const handleFileInputChange = (event) => {
         const file = event.target.files[0];
-        setSelectedFile(file);
+      //  setSelectedFile(file);
+        const reader = new FileReader();
+        reader.onload = () => {
+            const newB64String = btoa(reader.result);
+            setB64String(newB64String);
+            handleSubmit(newB64String);
+        };
+        reader.readAsBinaryString(file);
     };
 
     const handleFormSubmit = (event) => {
         event.preventDefault();
-
-        if (selectedFile) {
+        sendPostRequest(b64String);
+        /*if (selectedFile) {
             const reader = new FileReader();
             reader.onload = (event) => {
                 const fileData = event.target.result;
@@ -19,8 +27,16 @@ function FileInput({ handleSubmit }) {
                 handleSubmit(base64Data);
             };
             reader.readAsBinaryString(selectedFile);
-        }
+        }*/
     };
+
+    const sendPostRequest = (b64String) => {
+        fetch('http://localhost:8000/package', {
+            method: 'POST',
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ Content: b64String})
+        })
+    };//response?
 
     return (
         <form onSubmit={handleFormSubmit}>

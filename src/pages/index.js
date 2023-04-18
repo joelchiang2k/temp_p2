@@ -23,8 +23,8 @@ export default function Home({message}) {
   }
 
   const [url, setURL] = useState('');
-  const [packageName, setName] = useState('');
-  const [packageVersion, setVersion] = useState('');
+  /*const [packageName, setName] = useState('');
+  const [packageVersion, setVersion] = useState('');*/
   const [postId, setPostId] = useState([]);
   const [zipData, setZipData] = useState('')
 
@@ -34,7 +34,8 @@ export default function Home({message}) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const dataStruct = { packageName, packageVersion, url}; //content};
+    //const dataStruct = { packageName, packageVersion, url}; //content};
+    const dataStruct = { url };
     
     fetch('http://localhost:8000/package', {
       method: 'POST',
@@ -73,7 +74,7 @@ export default function Home({message}) {
         {/*<div>message: {message.message}</div>*/}
         <h3> Create Package From URL</h3>
         <form onSubmit={handleSubmit}>
-          <label> Name </label>
+          {/*<label> Name </label>
           <input
             type="text" 
             required
@@ -88,7 +89,7 @@ export default function Home({message}) {
             value={packageVersion}
             onChange={(e) => setVersion(e.target.value)}
             />
-          <hr/>
+<hr/>*/}
           <label>Enter URL</label>
           <input
             type="text" 
