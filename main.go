@@ -225,6 +225,7 @@ func CreatePackage(c *gin.Context) {
 		newObject := models.PackageCreate{Name: repo, Version: packageJsonObj.Version, Content: b64_string, URL: newPackage.URL}
 		models.DB.Create(&newObject)
 		
+		//newPackage only used for incoming request -> GET ID FROM newObject
 		c.JSON(201, gin.H{"data": newObject})
 	}else if(newPackage.Content != ""){
 		decodedString, err := base64.StdEncoding.DecodeString(newPackage.Content)	
@@ -385,6 +386,7 @@ func getPackageJsonInfo(packageJsonObj *PackageJsonInfo) {
 		panic(err)
 	}
 }
+
 func Reset(c *gin.Context) {
 	
 	if tx := models.DB.Exec("TRUNCATE TABLE package_creates RESTART IDENTITY"); tx.Error != nil {
