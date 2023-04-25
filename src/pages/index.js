@@ -3,6 +3,7 @@ import Image from 'next/image'
 import { Inter } from 'next/font/google'
 import styles from '@/styles/Home.module.css'
 import { useState } from 'react'
+import FileInput from './zipUpload'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -22,19 +23,42 @@ export default function Home({message}) {
   }
 
   const [url, setURL] = useState('');
+  /*const [packageName, setName] = useState('');
+  const [packageVersion, setVersion] = useState('');*/
   const [postId, setPostId] = useState([]);
+  const [zipData, setZipData] = useState('')
+
+  const handleFileSubmit = (base64Data) => {
+    //setFileData(base64Data)
+    setZipData(base64Data)
+    //e.preventDefault();
+    //sendPostRequest(b64String);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const urlStruct = { url };
+    //const dataStruct = { packageName, packageVersion, url}; //content};
+    const dataStruct = { url };
     
     fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}`, {
       method: 'POST',
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(urlStruct)
+      body: JSON.stringify(dataStruct)
     })//add response handling?
   }
 
+  const sendPostRequest = (b64String) => {
+      fetch('http://localhost:8000/package', {
+          method: 'POST',
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ Content: b64String})
+      })
+  };//response?
+
+  /*function FileInput() {
+    const [selectedZip, setSelectedZip] = useState(null)
+
+  }*/
   return (
     <>
       <Head>
@@ -59,6 +83,7 @@ export default function Home({message}) {
           </button>
         </div>
         {/*<div>message: {message.message}</div>*/}
+        <h3> Create Package From URL</h3>
         <form onSubmit={handleSubmit}>
           <label>Enter URL</label>
           <input
@@ -69,6 +94,31 @@ export default function Home({message}) {
             />
           <button>Submit</button>
         </form>
+        <center>
+          <FileInput handleSubmit={handleFileSubmit}/>
+          {zipData && (
+            <div>
+              <h2>File data:</h2>
+              <p>{zipData}</p>
+            </div>
+          )}
+        </center>
+
+        {/*<center>
+          <form onSubmit={handleFormSubmit}>
+            <label htmlFor='file-input'>
+              select zip file:
+              <input
+                type="file" 
+                id="file-input"
+                accept="application/zip"
+                onChange={handleFileInputChange}
+                style={{ display: 'none'}}
+              />
+            </label>
+            <button type="submit">Submit</button>
+          </form>
+</center>*/}
       </main>
     </>
   )
