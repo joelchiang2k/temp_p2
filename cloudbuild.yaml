@@ -1,0 +1,13 @@
+
+
+# Uses the docker build step to build an image called my-image
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/zippy-chain-383722/461-image', '.']
+    env:
+      - 'BACKEND_API=$${BACKEND_API}'
+  
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/zippy-chain-383722/461-image']
+images:
+  - 'gcr.io/zippy-chain-383722/461-image' 

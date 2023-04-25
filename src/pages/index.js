@@ -40,7 +40,7 @@ export default function Home({message}) {
     //const dataStruct = { packageName, packageVersion, url}; //content};
     const dataStruct = { url };
     
-    fetch('http://localhost:8000/package', {
+    fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}`, {
       method: 'POST',
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(dataStruct)
