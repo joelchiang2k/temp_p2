@@ -25,8 +25,20 @@ export default function Home({message}) {
   const [url, setURL] = useState('');
   /*const [packageName, setName] = useState('');
   const [packageVersion, setVersion] = useState('');*/
-  const [postId, setPostId] = useState([]);
-  const [zipData, setZipData] = useState('')
+  const [postID, setPostID] = useState();
+  const [zipData, setZipData] = useState('');
+  const [postName, setPostName] = useState('');
+  const [postVersion, setPostVersion] = useState('');
+  const [rows, setRows] = useState([]);
+  
+
+  const addRow = () => {
+    const newRow = { ID: postID, Name: postName, Version: postVersion };
+    setRows([...rows, newRow]);
+    setPostID('');
+    setPostName('');
+    setPostVersion('');
+  };
 
   const handleFileSubmit = (base64Data) => {
     //setFileData(base64Data)
@@ -44,16 +56,22 @@ export default function Home({message}) {
       method: 'POST',
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(dataStruct)
-    })//add response handling?
+    }).then(response => {
+        response.json()
+      })
+      .then(data => console.log(data))
+      .catch(error => console.error(error));
+    //const addRow = { ID: response.}
+
   }
 
-  const sendPostRequest = (b64String) => {
+  /*const sendPostRequest = (b64String) => {
       fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}`, {
           method: 'POST',
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ Content: b64String})
       })
-  };//response?
+  };//response?*/
 
   /*function FileInput() {
     const [selectedZip, setSelectedZip] = useState(null)
@@ -104,21 +122,21 @@ export default function Home({message}) {
           )}
         </center>
 
-        {/*<center>
-          <form onSubmit={handleFormSubmit}>
-            <label htmlFor='file-input'>
-              select zip file:
-              <input
-                type="file" 
-                id="file-input"
-                accept="application/zip"
-                onChange={handleFileInputChange}
-                style={{ display: 'none'}}
-              />
-            </label>
-            <button type="submit">Submit</button>
-          </form>
-</center>*/}
+        <div>
+          <h1>Packages</h1>
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th> 
+                <th>Version</th>
+              </tr>
+            </thead>
+            <tbody>
+
+            </tbody>
+          </table>
+        </div>
       </main>
     </>
   )
