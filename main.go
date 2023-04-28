@@ -89,6 +89,10 @@ func main() {
 		resetRoute.DELETE("", Reset)
 	}
 
+	authRoute := router.Group("/authenticate")
+	{
+		authRoute.PUT("", controllers.HandleAuth)
+	}
 	//api.GET("", CreatePackage)
 	router.Run(":8000")
 }

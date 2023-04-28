@@ -1,8 +1,20 @@
 import React, { useState } from 'react';
 
-function FileInput({ handleSubmit }) {
+function FileInput({ handleSubmit, onZipUpload }) {
     //const [selectedFile, setSelectedFile] = useState(null);
     const [b64String, setB64String] = useState('')
+    const [rows, setRows] = useState([]);
+    const [postID, setPostID] = useState();
+    const [postName, setPostName] = useState('');
+    const [postVersion, setPostVersion] = useState('');
+
+    const addRow = () => {
+        const newRow = { ID: postID, Name: postName, Version: postVersion };
+        setRows([...rows, newRow]);
+        setPostID('');
+        setPostName('');
+        setPostVersion('');
+      };
 
     const handleFileInputChange = (event) => {
         const file = event.target.files[0];
@@ -31,12 +43,22 @@ function FileInput({ handleSubmit }) {
     };
 
     const sendPostRequest = (b64String) => {
-        fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}`, {
+        fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}` + "/package", {
             method: 'POST',
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ Content: b64String})
         })
-    };//response?
+        .then(response => response.json())
+        .then(responseJSON => onZipUpload(responseJSON))
+        .catch(error => console.error(error));
+        
+        /*.then(responseJSON => {
+            console.log(responseJSON);
+            console.log(responseJSON.metadata)
+            const addRow = {ID: responseJSON.metadata.ID, Name: responseJSON.metadata.Name, Version: responseJSON.metadata.Version};
+            setRows([...rows, addRow]);
+      }).catch(error => console.error(error));*/
+    };
 
     return (
         <form onSubmit={handleFormSubmit}>
