@@ -147,7 +147,7 @@ func Authenticate(c *gin.Context) {
 	}
 	
 	if username == "ece30861defaultadminuser" && isAdmin == true && password == "correcthorsebatterystaple123(!__+@**(A'\"`;DROP TABLE packages;" {
-		c.String(200, token)
+		c.String(200, "token")
 	} else {
 		c.JSON(401, "The user or password is invalid.")
 	}
