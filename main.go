@@ -145,9 +145,7 @@ func Authenticate(c *gin.Context) {
 		c.JSON(400, gin.H{"error": "There is missing field(s) in the AuthenticationRequest or it is formed improperly."})
 		return
 	}
-
-	token := "bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
-
+	
 	if username == "ece30861defaultadminuser" && isAdmin == true && password == "correcthorsebatterystaple123(!__+@**(A'\"`;DROP TABLE packages;" {
 		c.String(200, token)
 	} else {
