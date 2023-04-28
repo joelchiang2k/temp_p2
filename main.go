@@ -112,35 +112,30 @@ func Authenticate(c *gin.Context) {
 	}
 
 	user, ok := requestBody["User"].(map[string]interface{})
-	fmt.Println("user", user)
 	if !ok {
 		c.JSON(400, gin.H{"error": "There is missing field(s) in the AuthenticationRequest or it is formed improperly."})
 		return
 	}
 
 	username, ok := user["name"]
-	fmt.Println("username", username)
 	if !ok {
 		c.JSON(400, gin.H{"error": "There is missing field(s) in the AuthenticationRequest or it is formed improperly."})
 		return
 	}
 
 	isAdmin, ok := user["isAdmin"]
-	fmt.Println("isAdmin", isAdmin)
 	if !ok {
 		c.JSON(400, gin.H{"error": "There is missing field(s) in the AuthenticationRequest or it is formed improperly."})
 		return
 	}
 
 	secret, ok := requestBody["Secret"].(map[string]interface{})
-	fmt.Println("secret", secret)
 	if !ok {
 		c.JSON(400, gin.H{"error": "There is missing field(s) in the AuthenticationRequest or it is formed improperly."})
 		return
 	}
 
 	password, ok := secret["password"]
-	fmt.Println("password", password)
 	if !ok {
 		c.JSON(400, gin.H{"error": "There is missing field(s) in the AuthenticationRequest or it is formed improperly."})
 		return
