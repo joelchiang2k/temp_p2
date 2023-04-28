@@ -5,6 +5,7 @@ import (
 	"bufio"
 	"encoding/base64"
 	"encoding/json"
+	"ex/part2/controllers"
 	"ex/part2/models"
 	"fmt"
 	"io"
@@ -73,6 +74,7 @@ func main() {
 		//api.PUT("/:{id}", ADD FUNC FOR PUT)
 		api.DELETE("/:{id}", DeletePackageById)
 		//api.GET("/:{id}/rate, RatePackage")
+		api.POST("/byRegEx", controllers.ByRegex)
 	}
 
 	packageList := router.Group("/packages")
@@ -85,10 +87,12 @@ func main() {
 		resetRoute.DELETE("", Reset)
 	}
 
+
 	auth := router.Group("/authenticate")
 	{
 		auth.PUT("", Authenticate)
 	}
+
 
 	//api.GET("", CreatePackage)
 	router.Run(":8000")
@@ -274,9 +278,21 @@ func CreatePackage(c *gin.Context) {
 		models.DB.Create(&newObject)
 
 		//newPackage only used for incoming request -> GET ID FROM newObject
-		c.JSON(201, gin.H{"data": newObject})
-	} else if newPackage.Content != "" {
-		decodedString, err := base64.StdEncoding.DecodeString(newPackage.Content)
+
+		//c.JSON(201, gin.H{"data": newObject})
+		c.JSON(201, gin.H{
+			"metadata": gin.H{
+				"Name": newObject.Name,
+				"Version": newObject.Version,
+				"ID": newObject.ID,
+			},
+			"data": gin.H {
+				"Content": newObject.Content,
+			},
+		})
+	}else if(newPackage.Content != ""){
+		decodedString, err := base64.StdEncoding.DecodeString(newPackage.Content)	
+
 		if err != nil {
 			panic(err)
 		}
@@ -307,7 +323,18 @@ func CreatePackage(c *gin.Context) {
 		newObject := models.PackageCreate{Name: repo, Version: packageJsonObj.Version, Content: newPackage.Content, URL: packageJsonObj.Homepage}
 		models.DB.Create(&newObject)
 
-		c.JSON(201, gin.H{"data": newObject})
+		
+		c.JSON(201, gin.H{
+			"metadata": gin.H{
+				"Name": newObject.Name,
+				"Version": newObject.Version,
+				"ID": newObject.ID,
+			},
+			"data": gin.H {
+				"Content": newObject.Content,
+			},
+		})
+
 	}
 
 }
@@ -405,7 +432,7 @@ func getPackageJsonInfo(packageJsonObj *PackageJsonInfo) {
 		}
 	}
 
-	fmt.Println(root)
+	//fmt.Println(root)
 
 	var data []byte
 	for _, file := range zipFile.File {

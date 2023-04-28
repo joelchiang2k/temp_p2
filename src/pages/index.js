@@ -2,7 +2,7 @@ import Head from 'next/head'
 import Image from 'next/image'
 import { Inter } from 'next/font/google'
 import styles from '@/styles/Home.module.css'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import FileInput from './zipUpload'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -25,8 +25,36 @@ export default function Home({message}) {
   const [url, setURL] = useState('');
   /*const [packageName, setName] = useState('');
   const [packageVersion, setVersion] = useState('');*/
-  const [postId, setPostId] = useState([]);
-  const [zipData, setZipData] = useState('')
+  const [postID, setPostID] = useState();
+  const [zipData, setZipData] = useState('');
+  const [postName, setPostName] = useState('');
+  const [postVersion, setPostVersion] = useState('');
+  const [rows, setRows] = useState([]);
+  
+
+  useEffect(() => {
+    const storeRows = JSON.parse(localStorage.getItem('rows'));
+    if(storeRows){
+      setRows(storeRows);
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('rows', JSON.stringify(rows));
+  }, [rows]);
+
+  const addRow = () => {
+    const newRow = { ID: postID, Name: postName, Version: postVersion };
+    setRows([...rows, newRow]);
+    setPostID('');
+    setPostName('');
+    setPostVersion('');
+  };
+
+  const handleZipUpload = (responseJSON) => {
+    const addRow = {ID: responseJSON.metadata.ID, Name: responseJSON.metadata.Name, Version: responseJSON.metadata.Version};
+    setRows([...rows, addRow]);
+  }
 
   const handleFileSubmit = (base64Data) => {
     //setFileData(base64Data)
@@ -39,21 +67,54 @@ export default function Home({message}) {
     e.preventDefault();
     //const dataStruct = { packageName, packageVersion, url}; //content};
     const dataStruct = { url };
-    
-    fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}`, {
+    console.log("suck me")
+    fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}` + "/package", {
       method: 'POST',
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(dataStruct)
-    })//add response handling?
+    }).then(response => response.json())
+      .then(responseJSON => {
+        console.log(responseJSON);
+        console.log(responseJSON.metadata)
+        const addRow = {ID: responseJSON.metadata.ID, Name: responseJSON.metadata.Name, Version: responseJSON.metadata.Version};
+        setRows([...rows, addRow]);
+
+      }).catch(error => console.error(error));
+    
+    //const addRow = {ID: response.metadata.id, Name: response.metadata.id, Version: response.metadata.Version};
+    //setRows([...rows, addRow]);
+    //const addRow = { ID: response.}
   }
 
-  const sendPostRequest = (b64String) => {
+  const handleReset = () => {
+    fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}` + "/reset", {
+      method: 'DELETE',
+    }).then(response => {
+      if(!response.ok){
+        throw new Error("Failed to reset database");
+      }
+      setRows([]);
+    }).catch(error => console.error(error));
+  }
+
+  const handleDeleteRow = (rowID) => {
+    fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}` + "/package/" + String(rowID), {
+      method: 'DELETE',
+    })
+    .then(response => response.json())
+    .then(() => {
+      const newRows = rows.filter(row => row.ID !== rowID);
+      setRows(newRows)
+    })
+    .catch(error => console.error(error));
+  }
+  /*const sendPostRequest = (b64String) => {
       fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}`, {
           method: 'POST',
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ Content: b64String})
       })
-  };//response?
+  };//response?*/
 
   /*function FileInput() {
     const [selectedZip, setSelectedZip] = useState(null)
@@ -94,31 +155,39 @@ export default function Home({message}) {
             />
           <button>Submit</button>
         </form>
+        <div>
+          <button onClick={handleReset}>Reset Database</button>
+        </div>
         <center>
-          <FileInput handleSubmit={handleFileSubmit}/>
-          {zipData && (
-            <div>
-              <h2>File data:</h2>
-              <p>{zipData}</p>
-            </div>
-          )}
+          <h2>Upload Package</h2>
+          <FileInput handleSubmit={handleFileSubmit} onZipUpload={handleZipUpload}/>
         </center>
 
-        {/*<center>
-          <form onSubmit={handleFormSubmit}>
-            <label htmlFor='file-input'>
-              select zip file:
-              <input
-                type="file" 
-                id="file-input"
-                accept="application/zip"
-                onChange={handleFileInputChange}
-                style={{ display: 'none'}}
-              />
-            </label>
-            <button type="submit">Submit</button>
-          </form>
-</center>*/}
+        <div>
+          <h1>Packages</h1>
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th> 
+                <th>Version</th>
+              </tr>
+            </thead>
+              {rows.map((row) => (
+                <tr key={row.ID}>
+                  <td>{row.ID}</td>
+                  <td>{row.Name}</td>
+                  <td>{row.Version}</td>
+                  <td>
+                    <button onClick={() => handleDeleteRow(row.ID)}>Delete</button>
+                  </td>
+                </tr>
+              ))}
+            <tbody>
+
+            </tbody>
+          </table>
+        </div>
       </main>
     </>
   )
