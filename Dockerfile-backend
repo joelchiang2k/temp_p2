@@ -1,0 +1,14 @@
+# Backend Dockerfile
+FROM golang:latest
+
+WORKDIR /app
+
+COPY . .
+
+RUN apt-get update && apt-get upgrade -y && \
+    curl -sL https://deb.nodesource.com/setup_16.x | bash - && \
+    apt-get install -y nodejs && \
+    npm install && \
+    go build -o main .
+
+CMD ["./main"]
