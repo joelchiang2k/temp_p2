@@ -67,7 +67,6 @@ export default function Home({message}) {
     e.preventDefault();
     //const dataStruct = { packageName, packageVersion, url}; //content};
     const dataStruct = { url };
-    console.log("suck me")
     fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}` + "/package", {
       method: 'POST',
       headers: { "Content-Type": "application/json" },
