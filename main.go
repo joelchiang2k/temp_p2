@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"ex/part2/controllers"
+	"ex/part2/logger"
 	"ex/part2/models"
 	"fmt"
 	"io"
@@ -28,6 +29,7 @@ import (
 	Name string `json:"Name"`
 	//ID string `json:"id"`
 }*/
+
 
 type PackageJsonInfo struct {
 	Homepage string `json:"homepage"`
@@ -67,6 +69,10 @@ func main() {
 	//DBInit()
 	models.ConnectDatabase()
 	router.Use(CORS)
+
+	logger := logger.GetInst()
+	logger.Println("program beginning")
+
 	api := router.Group("/package")
 	{
 		api.POST("", CreatePackage)
@@ -252,12 +258,16 @@ func UpdatePackage(c *gin.Context) {
 func CreatePackage(c *gin.Context) {
 	//creates new variable of {struct} type and binds data from incoming request to new variable
 	//returns error on bad req
+	logger := logger.GetInst()
 	var newPackage PackageCreate
-
+	
 	if err := c.BindJSON(&newPackage); err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
+
+	
+	logger.Printf("Incoming Request for /package POST \nContent: %s\nURL: %s\n", newPackage.Content, newPackage.URL)
 
 	if newPackage.URL != "" && newPackage.Content != "" {
 		c.JSON(400, "URL and Content both set")
@@ -280,6 +290,7 @@ func CreatePackage(c *gin.Context) {
 		//newPackage only used for incoming request -> GET ID FROM newObject
 
 		//c.JSON(201, gin.H{"data": newObject})
+		logger.Printf("Package Ingest Response: \n metadata:\n	Name: %s\n	Version: %s\n	ID: %d\n data:\n	Content: %s\n", newObject.Name, newObject.Version, newObject.ID, newObject.Content)
 		c.JSON(201, gin.H{
 			"metadata": gin.H{
 				"Name": newObject.Name,
