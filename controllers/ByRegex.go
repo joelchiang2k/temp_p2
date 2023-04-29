@@ -59,6 +59,7 @@ func ByRegex(c *gin.Context) {
 		matchedPackages = append(matchedPackages, nameVersionFromRow)
 	}
 
+<<<<<<< HEAD
 	
 	//if rows empty no package found w/ regex string -> 404
 	if(rows == nil){
@@ -70,4 +71,6 @@ func ByRegex(c *gin.Context) {
 	})
 
 
+=======
+>>>>>>> 08e4fa7 (updating metrics)
 }
