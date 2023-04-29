@@ -15,7 +15,7 @@ import (
 }*/
 
 type psqlRow struct {
-	Name    string `json:"Name"`
+	Name string `json:"Name"`
 	Version string `json:"Version"`
 }
 
@@ -42,8 +42,8 @@ func ByRegex(c *gin.Context) {
 
 	defer rows.Close()
 	for rows.Next() {
-		//	models.DB.ScanRows(rows, &matchedPackages)
-		var match models.PackageCreate
+	//	models.DB.ScanRows(rows, &matchedPackages)
+		var match models.PackageCreate 
 		//rows.Scan(&pName, &pVersion)
 		err := rows.Scan(&match.Name, &match.Content, &match.ID, &match.Version, &match.URL)
 		if err != nil {
@@ -59,13 +59,18 @@ func ByRegex(c *gin.Context) {
 		matchedPackages = append(matchedPackages, nameVersionFromRow)
 	}
 
+<<<<<<< HEAD
+	
 	//if rows empty no package found w/ regex string -> 404
-	if rows == nil {
+	if(rows == nil){
 		c.JSON(404, "No package found under this regex.")
 	}
 
-	c.JSON(200, gin.H{
+	c.JSON(200, gin.H {
 		"value": matchedPackages,
 	})
 
+
+=======
+>>>>>>> 08e4fa7 (updating metrics)
 }
