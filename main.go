@@ -135,10 +135,14 @@ func RetreivePackage(c *gin.Context) {
 	} else if err := models.DB.Where("id = ?", c.Param("{id}")).First(&packageToRetreive).Error; err != nil {
 		c.JSON(404, "Package does not exist.")
 	} else {
-		/*c.JSON(200, gin.H{
-			//access {id} from dynamic route which can be passed into db for processing
-			"data": []interface{}{packageToRetreive},
-		})*/
+		//logging purposes
+		niceJSON, err := json.MarshalIndent(packageToRetreive, "", " ")
+		if err != nil {
+			fmt.Println(err)
+			return
+		}	
+		fmt.Println("/package/:{id} GET request")
+		fmt.Println(string(niceJSON))
 		c.JSON(200, gin.H{
 			"metadata": gin.H{
 				"Name": packageToRetreive.Name,
