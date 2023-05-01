@@ -141,7 +141,7 @@ func RetreivePackage(c *gin.Context) {
 			fmt.Println(err)
 			return
 		}	
-		fmt.Println("/package/:{id} GET request")
+		fmt.Println("/package/:{id} GET response")
 		fmt.Println(string(niceJSON))
 		c.JSON(200, gin.H{
 			"metadata": gin.H{
@@ -165,12 +165,14 @@ func GetPackageList(c *gin.Context) {
 	var ex PackageCreate
 
 	//set headers to application/json and require authentication
-	c.Header("Content-Type", "application/json")
+	//c.Header("Content-Type", "application/json")
 	//c.Request.Header.Add("X-Authorization", auth_token)
 
 	//take data from frontend input and bind to json struct
 	c.BindJSON(&ex)
-	c.JSON(200, gin.H{"data": []interface{}{ex}})
+
+	//c.JSON(200, gin.H{"data": []interface{}{ex}})
+	c.JSON(500,"not implemented yet")
 
 	//add error codes 400 and 413
 }
