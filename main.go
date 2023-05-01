@@ -30,7 +30,6 @@ import (
 	//ID string `json:"id"`
 }*/
 
-
 type PackageJsonInfo struct {
 	Homepage string `json:"homepage"`
 	Version  string `json:"Version"`
@@ -93,67 +92,13 @@ func main() {
 		resetRoute.DELETE("", Reset)
 	}
 
-
 	auth := router.Group("/authenticate")
 	{
-		auth.PUT("", Authenticate)
+		auth.PUT("", controllers.Authenticate)
 	}
-
 
 	//api.GET("", CreatePackage)
 	router.Run(":8000")
-}
-
-func Authenticate(c *gin.Context) {
-
-	var requestBody map[string]interface{}
-	var foundToken models.Token
-
-	if err := c.BindJSON(&requestBody); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
-		return
-	}
-
-	user, ok := requestBody["User"].(map[string]interface{})
-	if !ok {
-		c.JSON(400, gin.H{"error": "There is missing field(s) in the AuthenticationRequest or it is formed improperly."})
-		return
-	}
-
-	username, ok := user["name"]
-	if !ok {
-		c.JSON(400, gin.H{"error": "There is missing field(s) in the AuthenticationRequest or it is formed improperly."})
-		return
-	}
-
-	isAdmin, ok := user["isAdmin"]
-	if !ok {
-		c.JSON(400, gin.H{"error": "There is missing field(s) in the AuthenticationRequest or it is formed improperly."})
-		return
-	}
-
-	secret, ok := requestBody["Secret"].(map[string]interface{})
-	if !ok {
-		c.JSON(400, gin.H{"error": "There is missing field(s) in the AuthenticationRequest or it is formed improperly."})
-		return
-	}
-
-	password, ok := secret["password"]
-	if !ok {
-		c.JSON(400, gin.H{"error": "There is missing field(s) in the AuthenticationRequest or it is formed improperly."})
-		return
-	}
-
-	if isAdmin == true {
-		if err := models.DB.Where("username = ? AND password = ?", username, password).First(&foundToken).Error; err != nil {
-			c.JSON(404, "The user or password is invalid.")
-		} else {
-			c.JSON(200, foundToken.AuthToken)
-			fmt.Println(foundToken.AuthToken)
-		}
-	} else {
-		c.JSON(401, "The user or password is invalid.")
-	}
 }
 
 //USEFUL FOR THINGS LIKE PAGE OFFSET IE localhost:8000/package?=1
@@ -192,16 +137,16 @@ func RetreivePackage(c *gin.Context) {
 		if err != nil {
 			fmt.Println(err)
 			return
-		}	
+		}
 		fmt.Println("/package/:{id} GET request")
 		fmt.Println(string(niceJSON))
 		c.JSON(200, gin.H{
 			"metadata": gin.H{
-				"Name": packageToRetreive.Name,
+				"Name":    packageToRetreive.Name,
 				"Version": packageToRetreive.Version,
-				"ID": packageToRetreive.ID,
+				"ID":      packageToRetreive.ID,
 			},
-			"data": gin.H {
+			"data": gin.H{
 				"Content": packageToRetreive.Content,
 			},
 		})
@@ -254,7 +199,7 @@ func CreatePackage(c *gin.Context) {
 	//returns error on bad req
 	logger := logger.GetInst()
 	var newPackage PackageCreate
-	
+
 	if err := c.BindJSON(&newPackage); err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
@@ -264,17 +209,17 @@ func CreatePackage(c *gin.Context) {
 	if err != nil {
 		fmt.Println(err)
 		return
-	}	
+	}
 	fmt.Println("package POST request")
 	fmt.Println(string(niceJSON))
-	
+
 	logger.Printf("Incoming Request for /package POST \nContent: %s\nURL: %s\n", newPackage.Content, newPackage.URL)
 
 	if newPackage.URL != "" && newPackage.Content != "" {
 		c.JSON(400, "URL and Content both set")
-	} else if (newPackage.URL == "" && newPackage.Content == ""){
+	} else if newPackage.URL == "" && newPackage.Content == "" {
 		c.JSON(400, "Neither URL or Content set.")
-	}else if newPackage.URL != "" {
+	} else if newPackage.URL != "" {
 		//process zip and upload to db
 
 		GetZip(newPackage.URL)
@@ -297,7 +242,7 @@ func CreatePackage(c *gin.Context) {
 		if err != nil {
 			fmt.Println(err)
 			return
-		}	
+		}
 		fmt.Println("package POST INGEST response:")
 		fmt.Println(string(niceJSON2))
 
@@ -307,16 +252,16 @@ func CreatePackage(c *gin.Context) {
 		//response w/ 201 and attributes
 		c.JSON(201, gin.H{
 			"metadata": gin.H{
-				"Name": newObject.Name,
+				"Name":    newObject.Name,
 				"Version": newObject.Version,
-				"ID": newObject.ID,
+				"ID":      newObject.ID,
 			},
-			"data": gin.H {
+			"data": gin.H{
 				"Content": newObject.Content,
 			},
 		})
-	}else if(newPackage.Content != ""){
-		decodedString, err := base64.StdEncoding.DecodeString(newPackage.Content)	
+	} else if newPackage.Content != "" {
+		decodedString, err := base64.StdEncoding.DecodeString(newPackage.Content)
 
 		if err != nil {
 			panic(err)
@@ -352,17 +297,17 @@ func CreatePackage(c *gin.Context) {
 		if err != nil {
 			fmt.Println(err)
 			return
-		}	
+		}
 		fmt.Println("package POST Upload by Zip response:")
 		fmt.Println(string(niceJSON2))
-		
+
 		c.JSON(201, gin.H{
 			"metadata": gin.H{
-				"Name": newObject.Name,
+				"Name":    newObject.Name,
 				"Version": newObject.Version,
-				"ID": newObject.ID,
+				"ID":      newObject.ID,
 			},
-			"data": gin.H {
+			"data": gin.H{
 				"Content": newObject.Content,
 			},
 		})

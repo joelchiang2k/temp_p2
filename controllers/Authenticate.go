@@ -1,10 +1,16 @@
 package controllers
 
-import "github.com/gin-gonic/gin"
+import (
+	"ex/part2/models"
+	"fmt"
+
+	"github.com/gin-gonic/gin"
+)
 
 func Authenticate(c *gin.Context) {
 
 	var requestBody map[string]interface{}
+	var foundToken models.Token
 
 	if err := c.BindJSON(&requestBody); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
@@ -40,9 +46,14 @@ func Authenticate(c *gin.Context) {
 		c.JSON(400, gin.H{"error": "There is missing field(s) in the AuthenticationRequest or it is formed improperly."})
 		return
 	}
-	
-	if username == "ece30861defaultadminuser" && isAdmin == true && password == "correcthorsebatterystaple123(!__+@**(A'\"`;DROP TABLE packages;" {
-		c.String(200, "token")
+
+	if isAdmin == true {
+		if err := models.DB.Where("username = ? AND password = ?", username, password).First(&foundToken).Error; err != nil {
+			c.JSON(404, "The user or password is invalid.")
+		} else {
+			c.JSON(200, foundToken.AuthToken)
+			fmt.Println(foundToken.AuthToken)
+		}
 	} else {
 		c.JSON(401, "The user or password is invalid.")
 	}
