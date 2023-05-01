@@ -216,7 +216,9 @@ func CreatePackage(c *gin.Context) {
 
 	if newPackage.URL != "" && newPackage.Content != "" {
 		c.JSON(400, "URL and Content both set")
-	} else if newPackage.URL != "" {
+	} else if (newPackage.URL == "" && newPackage.Content == ""){
+		c.JSON(400, "Neither URL or Content set.")
+	}else if newPackage.URL != "" {
 		//process zip and upload to db
 
 		GetZip(newPackage.URL)

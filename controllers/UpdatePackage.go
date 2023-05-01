@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"ex/part2/models"
 	"fmt"
+	"io/ioutil"
 
 	"github.com/gin-gonic/gin"
 )
@@ -28,6 +29,10 @@ func UpdatePackage(c *gin.Context) {
 	var pkg models.PackageCreate
 	var packageToUpdate FullPackageData
 
+	reqBody, _ := ioutil.ReadAll(c.Request.Body)
+	reqBodyJson := string(reqBody)
+	fmt.Println("request before trying to bind for UPDATE")
+	fmt.Println(reqBodyJson)
 	//validate request
 	if err := c.BindJSON(&packageToUpdate); err != nil {
 		c.JSON(400, "There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
@@ -39,6 +44,7 @@ func UpdatePackage(c *gin.Context) {
 		fmt.Println(err)
 		return
 	}	
+	fmt.Println("AFTER BINDING JSON")
 	fmt.Println("package/byid PUT request")
 	fmt.Println(string(niceJSON))
 
