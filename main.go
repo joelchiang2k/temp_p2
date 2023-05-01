@@ -77,7 +77,7 @@ func main() {
 	{
 		api.POST("", CreatePackage)
 		api.GET("/:{id}", RetreivePackage)
-		//api.PUT("/:{id}", ADD FUNC FOR PUT)
+		api.PUT("/:{id}", controllers.UpdatePackage)
 		api.DELETE("/:{id}", DeletePackageById)
 		//api.GET("/:{id}/rate, RatePackage")
 		api.POST("/byRegEx", controllers.ByRegex)
@@ -96,7 +96,7 @@ func main() {
 
 	auth := router.Group("/authenticate")
 	{
-		auth.PUT("", Authenticate)
+		auth.PUT("", controllers.Authenticate)
 	}
 
 
@@ -111,52 +111,6 @@ func main() {
 		fmt.Printf("key: %v, val %v\n", key, values)
 	}
 }*/
-
-func Authenticate(c *gin.Context) {
-
-	var requestBody map[string]interface{}
-
-	if err := c.BindJSON(&requestBody); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
-		return
-	}
-
-	user, ok := requestBody["User"].(map[string]interface{})
-	if !ok {
-		c.JSON(400, gin.H{"error": "There is missing field(s) in the AuthenticationRequest or it is formed improperly."})
-		return
-	}
-
-	username, ok := user["name"]
-	if !ok {
-		c.JSON(400, gin.H{"error": "There is missing field(s) in the AuthenticationRequest or it is formed improperly."})
-		return
-	}
-
-	isAdmin, ok := user["isAdmin"]
-	if !ok {
-		c.JSON(400, gin.H{"error": "There is missing field(s) in the AuthenticationRequest or it is formed improperly."})
-		return
-	}
-
-	secret, ok := requestBody["Secret"].(map[string]interface{})
-	if !ok {
-		c.JSON(400, gin.H{"error": "There is missing field(s) in the AuthenticationRequest or it is formed improperly."})
-		return
-	}
-
-	password, ok := secret["password"]
-	if !ok {
-		c.JSON(400, gin.H{"error": "There is missing field(s) in the AuthenticationRequest or it is formed improperly."})
-		return
-	}
-	
-	if username == "ece30861defaultadminuser" && isAdmin == true && password == "correcthorsebatterystaple123(!__+@**(A'\"`;DROP TABLE packages;" {
-		c.String(200, "token")
-	} else {
-		c.JSON(401, "The user or password is invalid.")
-	}
-}
 
 func DeletePackageById(c *gin.Context) {
 	var packageToDelete models.PackageCreate
@@ -181,10 +135,21 @@ func RetreivePackage(c *gin.Context) {
 	} else if err := models.DB.Where("id = ?", c.Param("{id}")).First(&packageToRetreive).Error; err != nil {
 		c.JSON(404, "Package does not exist.")
 	} else {
-		c.JSON(200, gin.H{
+		/*c.JSON(200, gin.H{
 			//access {id} from dynamic route which can be passed into db for processing
 			"data": []interface{}{packageToRetreive},
+		})*/
+		c.JSON(200, gin.H{
+			"metadata": gin.H{
+				"Name": packageToRetreive.Name,
+				"Version": packageToRetreive.Version,
+				"ID": packageToRetreive.ID,
+			},
+			"data": gin.H {
+				"Content": packageToRetreive.Content,
+			},
 		})
+		return
 	}
 	//errors 400 (missing PackageID/Auth token/not authorized) or 404 (package not found)
 }
@@ -228,33 +193,6 @@ func RatePackage(c *gin.Context) {
 	//})
 }
 
-//finish
-func UpdatePackage(c *gin.Context) {
-	var pkg models.PackageCreate
-
-	//get package if exists in db
-	//incorrect format in route string
-	if c.Param("{id}") == "/" {
-		c.JSON(400, "There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
-	} else if err := models.DB.Where("id = ?", c.Param("{id}")).First(&pkg).Error; err != nil {
-		//package not found -> return error 404
-		c.JSON(404, "Package does not exist.")
-	}
-
-	var packageToUpdate PackageCreate
-	//validate name, ID, version are matched
-	if err := c.BindJSON(&packageToUpdate); err != nil {
-		c.AbortWithError(400, err)
-		return
-	}
-	//ADD VERSION
-	//if(packageToUpdate.Name == pkg.Name && c.Param("{id}") == string(pkg.ID)){
-
-	//models.DB.Update("Content", packageToUpdate.Content)
-	//}
-
-}
-
 func CreatePackage(c *gin.Context) {
 	//creates new variable of {struct} type and binds data from incoming request to new variable
 	//returns error on bad req
@@ -266,6 +204,13 @@ func CreatePackage(c *gin.Context) {
 		return
 	}
 
+	niceJSON, err := json.MarshalIndent(newPackage, "", " ")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}	
+	fmt.Println("package POST request")
+	fmt.Println(string(niceJSON))
 	
 	logger.Printf("Incoming Request for /package POST \nContent: %s\nURL: %s\n", newPackage.Content, newPackage.URL)
 
@@ -289,8 +234,19 @@ func CreatePackage(c *gin.Context) {
 
 		//newPackage only used for incoming request -> GET ID FROM newObject
 
-		//c.JSON(201, gin.H{"data": newObject})
+		//print response
+		niceJSON2, err := json.MarshalIndent(newObject, "", " ")
+		if err != nil {
+			fmt.Println(err)
+			return
+		}	
+		fmt.Println("package POST INGEST response:")
+		fmt.Println(string(niceJSON2))
+
+		//attempt to log
 		logger.Printf("Package Ingest Response: \n metadata:\n	Name: %s\n	Version: %s\n	ID: %d\n data:\n	Content: %s\n", newObject.Name, newObject.Version, newObject.ID, newObject.Content)
+
+		//response w/ 201 and attributes
 		c.JSON(201, gin.H{
 			"metadata": gin.H{
 				"Name": newObject.Name,
@@ -334,6 +290,13 @@ func CreatePackage(c *gin.Context) {
 		newObject := models.PackageCreate{Name: repo, Version: packageJsonObj.Version, Content: newPackage.Content, URL: packageJsonObj.Homepage}
 		models.DB.Create(&newObject)
 
+		niceJSON2, err := json.MarshalIndent(newObject, "", " ")
+		if err != nil {
+			fmt.Println(err)
+			return
+		}	
+		fmt.Println("package POST Upload by Zip response:")
+		fmt.Println(string(niceJSON2))
 		
 		c.JSON(201, gin.H{
 			"metadata": gin.H{
