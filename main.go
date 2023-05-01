@@ -30,7 +30,6 @@ import (
 	//ID string `json:"id"`
 }*/
 
-
 type PackageJsonInfo struct {
 	Homepage string `json:"homepage"`
 	Version  string `json:"Version"`
@@ -93,12 +92,10 @@ func main() {
 		resetRoute.DELETE("", Reset)
 	}
 
-
 	auth := router.Group("/authenticate")
 	{
 		auth.PUT("", controllers.Authenticate)
 	}
-
 
 	//api.GET("", CreatePackage)
 	router.Run(":8000")
@@ -140,16 +137,18 @@ func RetreivePackage(c *gin.Context) {
 		if err != nil {
 			fmt.Println(err)
 			return
+
 		}	
 		fmt.Println("/package/:{id} GET response")
+
 		fmt.Println(string(niceJSON))
 		c.JSON(200, gin.H{
 			"metadata": gin.H{
-				"Name": packageToRetreive.Name,
+				"Name":    packageToRetreive.Name,
 				"Version": packageToRetreive.Version,
-				"ID": packageToRetreive.ID,
+				"ID":      packageToRetreive.ID,
 			},
-			"data": gin.H {
+			"data": gin.H{
 				"Content": packageToRetreive.Content,
 			},
 		})
@@ -204,7 +203,7 @@ func CreatePackage(c *gin.Context) {
 	//returns error on bad req
 	logger := logger.GetInst()
 	var newPackage PackageCreate
-	
+
 	if err := c.BindJSON(&newPackage); err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
@@ -214,17 +213,17 @@ func CreatePackage(c *gin.Context) {
 	if err != nil {
 		fmt.Println(err)
 		return
-	}	
+	}
 	fmt.Println("package POST request")
 	fmt.Println(string(niceJSON))
-	
+
 	logger.Printf("Incoming Request for /package POST \nContent: %s\nURL: %s\n", newPackage.Content, newPackage.URL)
 
 	if newPackage.URL != "" && newPackage.Content != "" {
 		c.JSON(400, "URL and Content both set")
-	} else if (newPackage.URL == "" && newPackage.Content == ""){
+	} else if newPackage.URL == "" && newPackage.Content == "" {
 		c.JSON(400, "Neither URL or Content set.")
-	}else if newPackage.URL != "" {
+	} else if newPackage.URL != "" {
 		//process zip and upload to db
 
 		GetZip(newPackage.URL)
@@ -247,7 +246,7 @@ func CreatePackage(c *gin.Context) {
 		if err != nil {
 			fmt.Println(err)
 			return
-		}	
+		}
 		fmt.Println("package POST INGEST response:")
 		fmt.Println(string(niceJSON2))
 
@@ -257,16 +256,16 @@ func CreatePackage(c *gin.Context) {
 		//response w/ 201 and attributes
 		c.JSON(201, gin.H{
 			"metadata": gin.H{
-				"Name": newObject.Name,
+				"Name":    newObject.Name,
 				"Version": newObject.Version,
-				"ID": newObject.ID,
+				"ID":      newObject.ID,
 			},
-			"data": gin.H {
+			"data": gin.H{
 				"Content": newObject.Content,
 			},
 		})
-	}else if(newPackage.Content != ""){
-		decodedString, err := base64.StdEncoding.DecodeString(newPackage.Content)	
+	} else if newPackage.Content != "" {
+		decodedString, err := base64.StdEncoding.DecodeString(newPackage.Content)
 
 		if err != nil {
 			panic(err)
@@ -302,17 +301,17 @@ func CreatePackage(c *gin.Context) {
 		if err != nil {
 			fmt.Println(err)
 			return
-		}	
+		}
 		fmt.Println("package POST Upload by Zip response:")
 		fmt.Println(string(niceJSON2))
-		
+
 		c.JSON(201, gin.H{
 			"metadata": gin.H{
-				"Name": newObject.Name,
+				"Name":    newObject.Name,
 				"Version": newObject.Version,
-				"ID": newObject.ID,
+				"ID":      newObject.ID,
 			},
-			"data": gin.H {
+			"data": gin.H{
 				"Content": newObject.Content,
 			},
 		})
