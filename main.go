@@ -30,7 +30,6 @@ import (
 	//ID string `json:"id"`
 }*/
 
-
 type PackageJsonInfo struct {
 	Homepage string `json:"homepage"`
 	Version  string `json:"Version"`
@@ -93,12 +92,10 @@ func main() {
 		resetRoute.DELETE("", Reset)
 	}
 
-
 	auth := router.Group("/authenticate")
 	{
 		auth.PUT("", Authenticate)
 	}
-
 
 	//api.GET("", CreatePackage)
 	router.Run(":8000")
@@ -115,6 +112,7 @@ func main() {
 func Authenticate(c *gin.Context) {
 
 	var requestBody map[string]interface{}
+	var foundToken models.Token
 
 	if err := c.BindJSON(&requestBody); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
@@ -150,9 +148,14 @@ func Authenticate(c *gin.Context) {
 		c.JSON(400, gin.H{"error": "There is missing field(s) in the AuthenticationRequest or it is formed improperly."})
 		return
 	}
-	
-	if username == "ece30861defaultadminuser" && isAdmin == true && password == "correcthorsebatterystaple123(!__+@**(A'\"`;DROP TABLE packages;" {
-		c.String(200, "token")
+
+	if isAdmin == true {
+		if err := models.DB.Where("username = ? AND password = ?", username, password).First(&foundToken).Error; err != nil {
+			c.JSON(404, "The user or password is invalid.")
+		} else {
+			c.JSON(200, foundToken.AuthToken)
+			fmt.Println(foundToken.AuthToken)
+		}
 	} else {
 		c.JSON(401, "The user or password is invalid.")
 	}
@@ -260,13 +263,12 @@ func CreatePackage(c *gin.Context) {
 	//returns error on bad req
 	logger := logger.GetInst()
 	var newPackage PackageCreate
-	
+
 	if err := c.BindJSON(&newPackage); err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
-	
 	logger.Printf("Incoming Request for /package POST \nContent: %s\nURL: %s\n", newPackage.Content, newPackage.URL)
 
 	if newPackage.URL != "" && newPackage.Content != "" {
@@ -293,16 +295,16 @@ func CreatePackage(c *gin.Context) {
 		logger.Printf("Package Ingest Response: \n metadata:\n	Name: %s\n	Version: %s\n	ID: %d\n data:\n	Content: %s\n", newObject.Name, newObject.Version, newObject.ID, newObject.Content)
 		c.JSON(201, gin.H{
 			"metadata": gin.H{
-				"Name": newObject.Name,
+				"Name":    newObject.Name,
 				"Version": newObject.Version,
-				"ID": newObject.ID,
+				"ID":      newObject.ID,
 			},
-			"data": gin.H {
+			"data": gin.H{
 				"Content": newObject.Content,
 			},
 		})
-	}else if(newPackage.Content != ""){
-		decodedString, err := base64.StdEncoding.DecodeString(newPackage.Content)	
+	} else if newPackage.Content != "" {
+		decodedString, err := base64.StdEncoding.DecodeString(newPackage.Content)
 
 		if err != nil {
 			panic(err)
@@ -334,14 +336,13 @@ func CreatePackage(c *gin.Context) {
 		newObject := models.PackageCreate{Name: repo, Version: packageJsonObj.Version, Content: newPackage.Content, URL: packageJsonObj.Homepage}
 		models.DB.Create(&newObject)
 
-		
 		c.JSON(201, gin.H{
 			"metadata": gin.H{
-				"Name": newObject.Name,
+				"Name":    newObject.Name,
 				"Version": newObject.Version,
-				"ID": newObject.ID,
+				"ID":      newObject.ID,
 			},
-			"data": gin.H {
+			"data": gin.H{
 				"Content": newObject.Content,
 			},
 		})
