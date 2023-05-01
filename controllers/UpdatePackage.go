@@ -5,6 +5,7 @@ import (
 	"ex/part2/models"
 	"fmt"
 	"io/ioutil"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -12,12 +13,12 @@ import (
 type MetadataStruct struct {
 	Name string `json:"Name"`
 	Version string `json:"Version"`
-	ID uint `json:"ID"`
+	ID string `json:"ID"`
 }
 
 type PackageDataStruct struct {
-	Content string `json:"Content"`
-	URL string `json:"URL"`
+	Content *string `json:"Content"`
+	URL *string `json:"URL"`
 }
 
 type FullPackageData struct {
@@ -61,15 +62,16 @@ func UpdatePackage(c *gin.Context) {
 
 
 	//validate name, ID, version are matched
-	if(packageToUpdate.Metadata.Name == pkg.Name && packageToUpdate.Metadata.ID == pkg.ID && packageToUpdate.Metadata.Version == pkg.Version){
-		if(packageToUpdate.Data.Content != ""){
+	if(packageToUpdate.Metadata.Name == pkg.Name && packageToUpdate.Metadata.ID == strconv.Itoa(int(pkg.ID)) && packageToUpdate.Metadata.Version == pkg.Version){
+		if(packageToUpdate.Data.Content != nil){
 			//models.DB.Update("content", packageToUpdate.Data.Content)
 			models.DB.Table("package_creates").Where("id = ?", c.Param("{id}")).Updates(map[string]interface{}{"content": packageToUpdate.Data.Content})
 			c.JSON(200, "Package was updated.")
 			return
-		}else if(packageToUpdate.Data.URL != ""){
+		}else if(packageToUpdate.Data.URL != nil){
 			//operate on url which fucking blows
-
+			c.JSON(469, "not implemented")
+			return
 		}
 	}else{
 		c.JSON(404, "ID, Name, and Version do not all match.")
