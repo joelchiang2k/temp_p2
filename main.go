@@ -2,14 +2,13 @@ package main
 
 import (
 	"archive/zip"
-	"bufio"
 	"encoding/base64"
 	"encoding/json"
+	"ex/part2/HelperFunctions"
 	"ex/part2/controllers"
 	"ex/part2/logger"
 	"ex/part2/models"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -226,13 +225,13 @@ func CreatePackage(c *gin.Context) {
 	} else if newPackage.URL != "" {
 		//process zip and upload to db
 
-		GetZip(newPackage.URL)
+		HelperFunctions.GetZip(newPackage.URL)
 
 		//get info from package.json
 		var packageJsonObj PackageJsonInfo
 		getPackageJsonInfo(&packageJsonObj)
 
-		b64_string := EncodeZipFile()
+		b64_string := HelperFunctions.EncodeZipFile()
 		split := strings.Split(newPackage.URL, "/")
 		repo := split[len(split)-1]
 
@@ -334,7 +333,7 @@ func CreatePackage(c *gin.Context) {
 
 }
 
-func EncodeZipFile() (b64 string) {
+/*func EncodeZipFile() (b64 string) {
 	//get working directory
 	directory, err := os.Getwd()
 	if err != nil {
@@ -349,9 +348,9 @@ func EncodeZipFile() (b64 string) {
 	encodedString := base64.StdEncoding.EncodeToString(content)
 
 	return encodedString
-}
+}*/
 
-func GetZip(url string) {
+/*func GetZip(url string) {
 
 	//split owner and repository strings from original url for later use
 	split := strings.Split(url, "/")
@@ -384,7 +383,7 @@ func GetZip(url string) {
 		fmt.Println(err)
 	}
 
-}
+}*/
 
 func splitPaths(path string) []string {
 	paths := strings.Split(strings.Replace(path, "\\", "/", -1), "/")
