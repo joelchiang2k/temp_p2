@@ -160,18 +160,22 @@ func GetPackageList(c *gin.Context) {
 	//array is needed in data -> how does this work?!
 
 	//struct for json
-	var ex PackageCreate
+	//var ex PackageCreate
 
+	reqBody, _ := ioutil.ReadAll(c.Request.Body)
+	reqBodyJson := string(reqBody)
+	fmt.Println("request before trying to bind for UPDATE")
+	fmt.Println(reqBodyJson)
 	//set headers to application/json and require authentication
 	//c.Header("Content-Type", "application/json")
 	//c.Request.Header.Add("X-Authorization", auth_token)
 
 	//take data from frontend input and bind to json struct
-	c.BindJSON(&ex)
+	//c.BindJSON(&ex)
 
 	//c.JSON(200, gin.H{"data": []interface{}{ex}})
 	c.JSON(500,"not implemented yet")
-
+	return
 	//add error codes 400 and 413
 }
 
