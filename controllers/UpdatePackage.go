@@ -2,41 +2,42 @@ package controllers
 
 import (
 	"encoding/json"
+	"ex/part2/HelperFunctions"
 	"ex/part2/models"
 	"fmt"
-	"io/ioutil"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
 type MetadataStruct struct {
+	ID string `json:"ID"`
 	Name string `json:"Name"`
 	Version string `json:"Version"`
-	ID string `json:"ID"`
 }
 
 type PackageDataStruct struct {
-	Content *string `json:"Content"`
-	URL *string `json:"URL"`
+	Content string `json:"Content,omitempty"`
+	URL string `json:"URL,omitempty"`
 }
 
 type FullPackageData struct {
-	Metadata MetadataStruct `json:"metadata"`
 	Data PackageDataStruct `json:"data"`
+	Metadata MetadataStruct `json:"metadata"`
 }
 
 func UpdatePackage(c *gin.Context) {
 	var pkg models.PackageCreate
 	var packageToUpdate FullPackageData
 
-	reqBody, _ := ioutil.ReadAll(c.Request.Body)
+	/*reqBody, _ := ioutil.ReadAll(c.Request.Body)
 	reqBodyJson := string(reqBody)
 	fmt.Println("request before trying to bind for UPDATE")
-	fmt.Println(reqBodyJson)
+	fmt.Println(reqBodyJson)*/
 	//validate request
 	if err := c.BindJSON(&packageToUpdate); err != nil {
-		c.JSON(400, "There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
+		print(err.Error)
+		c.JSON(400, "SThere is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
 		return
 	}
 	//fmt.Println(packageToUpdate)
@@ -52,7 +53,7 @@ func UpdatePackage(c *gin.Context) {
 	//get package if exists in db
 	//incorrect format in route string
 	if c.Param("{id}") == "/" {
-		c.JSON(400, "There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
+		c.JSON(400, "BThere is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
 		return
 	} else if err := models.DB.Where("id = ?", c.Param("{id}")).First(&pkg).Error; err != nil {
 		//package not found -> return error 404
@@ -63,14 +64,17 @@ func UpdatePackage(c *gin.Context) {
 
 	//validate name, ID, version are matched
 	if(packageToUpdate.Metadata.Name == pkg.Name && packageToUpdate.Metadata.ID == strconv.Itoa(int(pkg.ID)) && packageToUpdate.Metadata.Version == pkg.Version){
-		if(packageToUpdate.Data.Content != nil){
+		if(packageToUpdate.Data.Content != ""){
 			//models.DB.Update("content", packageToUpdate.Data.Content)
 			models.DB.Table("package_creates").Where("id = ?", c.Param("{id}")).Updates(map[string]interface{}{"content": packageToUpdate.Data.Content})
 			c.JSON(200, "Package was updated.")
 			return
-		}else if(packageToUpdate.Data.URL != nil){
+		}else if(packageToUpdate.Data.URL != ""){
 			//operate on url which fucking blows
-			c.JSON(469, "not implemented")
+			HelperFunctions.GetZip(packageToUpdate.Data.URL)
+			base64string := HelperFunctions.EncodeZipFile()
+			models.DB.Table("package_creates").Where("id = ?", c.Param("{id}")).Updates(map[string]interface{}{"content": base64string})
+			c.JSON(200, "Package was updated.")
 			return
 		}
 	}else{
