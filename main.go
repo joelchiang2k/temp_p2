@@ -238,6 +238,13 @@ func CreatePackage(c *gin.Context) {
 		repo := split[len(split)-1]
 
 		newObject := models.PackageCreate{Name: repo, Version: packageJsonObj.Version, Content: b64_string, URL: newPackage.URL}
+
+		//check if package already exists
+		if result := models.DB.Where("name = ?", newObject.Name).First(&newObject).RowsAffected; result == 1 {
+			c.JSON(409, "Package exists already.")	
+			return
+		}
+
 		models.DB.Create(&newObject)
 
 		//newPackage only used for incoming request -> GET ID FROM newObject
@@ -296,6 +303,13 @@ func CreatePackage(c *gin.Context) {
 		repo := split[len(split)-1]
 
 		newObject := models.PackageCreate{Name: repo, Version: packageJsonObj.Version, Content: newPackage.Content, URL: packageJsonObj.Homepage}
+
+		//check if package already exists
+		if result := models.DB.Where("name = ?", newObject.Name).First(&newObject).RowsAffected; result == 1 {
+			c.JSON(409, "Package exists already.")	
+			return
+		}
+
 		models.DB.Create(&newObject)
 
 		niceJSON2, err := json.MarshalIndent(newObject, "", " ")
