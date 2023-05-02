@@ -2,14 +2,13 @@ package main
 
 import (
 	"archive/zip"
-	"bufio"
 	"encoding/base64"
 	"encoding/json"
+	"ex/part2/HelperFunctions"
 	"ex/part2/controllers"
 	"ex/part2/logger"
 	"ex/part2/models"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -76,7 +75,7 @@ func main() {
 	{
 		api.POST("", CreatePackage)
 		api.GET("/:{id}", RetreivePackage)
-		//api.PUT("/:{id}", ADD FUNC FOR PUT)
+		api.PUT("/:{id}", controllers.UpdatePackage)
 		api.DELETE("/:{id}", DeletePackageById)
 		api.GET("/:{id}/rate, RatePackage")
 		api.POST("/byRegEx", controllers.ByRegex)
@@ -84,7 +83,7 @@ func main() {
 
 	packageList := router.Group("/packages")
 	{
-		packageList.POST("", GetPackageList)
+		packageList.POST("", controllers.GetPackageList)
 	}
 
 	resetRoute := router.Group("/reset")
@@ -94,7 +93,7 @@ func main() {
 
 	auth := router.Group("/authenticate")
 	{
-		auth.PUT("", Authenticate)
+		auth.PUT("", controllers.Authenticate)
 	}
 
 	//api.GET("", CreatePackage)
@@ -108,52 +107,6 @@ func main() {
 		fmt.Printf("key: %v, val %v\n", key, values)
 	}
 }*/
-
-func Authenticate(c *gin.Context) {
-
-	var requestBody map[string]interface{}
-
-	if err := c.BindJSON(&requestBody); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
-		return
-	}
-
-	user, ok := requestBody["User"].(map[string]interface{})
-	if !ok {
-		c.JSON(400, gin.H{"error": "There is missing field(s) in the AuthenticationRequest or it is formed improperly."})
-		return
-	}
-
-	username, ok := user["name"]
-	if !ok {
-		c.JSON(400, gin.H{"error": "There is missing field(s) in the AuthenticationRequest or it is formed improperly."})
-		return
-	}
-
-	isAdmin, ok := user["isAdmin"]
-	if !ok {
-		c.JSON(400, gin.H{"error": "There is missing field(s) in the AuthenticationRequest or it is formed improperly."})
-		return
-	}
-
-	secret, ok := requestBody["Secret"].(map[string]interface{})
-	if !ok {
-		c.JSON(400, gin.H{"error": "There is missing field(s) in the AuthenticationRequest or it is formed improperly."})
-		return
-	}
-
-	password, ok := secret["password"]
-	if !ok {
-		c.JSON(400, gin.H{"error": "There is missing field(s) in the AuthenticationRequest or it is formed improperly."})
-		return
-	}
-
-	if username == "ece30861defaultadminuser" && isAdmin == true && password == "correcthorsebatterystaple123(!__+@**(A'\"`;DROP TABLE packages;" {
-		c.String(200, "token")
-	} else {
-		c.JSON(401, "The user or password is invalid.")
-	}
-}
 
 func DeletePackageById(c *gin.Context) {
 	var packageToDelete models.PackageCreate
@@ -178,56 +131,51 @@ func RetreivePackage(c *gin.Context) {
 	} else if err := models.DB.Where("id = ?", c.Param("{id}")).First(&packageToRetreive).Error; err != nil {
 		c.JSON(404, "Package does not exist.")
 	} else {
+		//logging purposes
+		niceJSON, err := json.MarshalIndent(packageToRetreive, "", " ")
+		if err != nil {
+			fmt.Println(err)
+			return
+
+		}
+		fmt.Println("/package/:{id} GET response")
+
+		fmt.Println(string(niceJSON))
 		c.JSON(200, gin.H{
-			//access {id} from dynamic route which can be passed into db for processing
-			"data": []interface{}{packageToRetreive},
+			"metadata": gin.H{
+				"Name":    packageToRetreive.Name,
+				"Version": packageToRetreive.Version,
+				"ID":      packageToRetreive.ID,
+			},
+			"data": gin.H{
+				"Content": packageToRetreive.Content,
+			},
 		})
+		return
 	}
 	//errors 400 (missing PackageID/Auth token/not authorized) or 404 (package not found)
 }
 
-func GetPackageList(c *gin.Context) {
-	//array is needed in data -> how does this work?!
+func RatePackage(c *gin.Context) {
+	var packageToRate models.PackageCreate
 
-	//struct for json
-	var ex PackageCreate
-
-	//set headers to application/json and require authentication
-	c.Header("Content-Type", "application/json")
-	//c.Request.Header.Add("X-Authorization", auth_token)
-
-	//take data from frontend input and bind to json struct
-	c.BindJSON(&ex)
-	c.JSON(200, gin.H{"data": []interface{}{ex}})
-
-	//add error codes 400 and 413
-}
-
-// finish
-func UpdatePackage(c *gin.Context) {
-	var pkg models.PackageCreate
-
-	//get package if exists in db
-	//incorrect format in route string
 	if c.Param("{id}") == "/" {
 		c.JSON(400, "There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
-	} else if err := models.DB.Where("id = ?", c.Param("{id}")).First(&pkg).Error; err != nil {
-		//package not found -> return error 404
+	} else if err := models.DB.Where("id = ?", c.Param("{id}")).First(&packageToRate).Error; err != nil {
 		c.JSON(404, "Package does not exist.")
 	}
 
-	var packageToUpdate PackageCreate
-	//validate name, ID, version are matched
-	if err := c.BindJSON(&packageToUpdate); err != nil {
-		c.AbortWithError(400, err)
-		return
-	}
-	//ADD VERSION
-	//if(packageToUpdate.Name == pkg.Name && c.Param("{id}") == string(pkg.ID)){
+	//DANIEL ENTER RATE STUFF HERE
+	//could insert functions under a subdirectory called rateFunctions/
+	//then call like rateFunctions.netScore(), rateFunctions.Responsiveness(), etc...
 
-	//models.DB.Update("Content", packageToUpdate.Content)
-	//}
+	//if anything in rating funcs fail
+	//c.JSON(500, "The package rating system choked on at least one of the metrics.")
 
+	//else everything ok
+	//c.JSON(200, gin.H{
+	//ratingStruct
+	//})
 }
 
 func CreatePackage(c *gin.Context) {
@@ -241,30 +189,58 @@ func CreatePackage(c *gin.Context) {
 		return
 	}
 
+	niceJSON, err := json.MarshalIndent(newPackage, "", " ")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println("package POST request")
+	fmt.Println(string(niceJSON))
+
 	logger.Printf("Incoming Request for /package POST \nContent: %s\nURL: %s\n", newPackage.Content, newPackage.URL)
 
 	if newPackage.URL != "" && newPackage.Content != "" {
 		c.JSON(400, "URL and Content both set")
+	} else if newPackage.URL == "" && newPackage.Content == "" {
+		c.JSON(400, "Neither URL or Content set.")
 	} else if newPackage.URL != "" {
 		//process zip and upload to db
 
-		GetZip(newPackage.URL)
+		HelperFunctions.GetZip(newPackage.URL)
 
 		//get info from package.json
 		var packageJsonObj PackageJsonInfo
 		getPackageJsonInfo(&packageJsonObj)
 
-		b64_string := EncodeZipFile()
+		b64_string := HelperFunctions.EncodeZipFile()
 		split := strings.Split(newPackage.URL, "/")
 		repo := split[len(split)-1]
 
 		newObject := models.PackageCreate{Name: repo, Version: packageJsonObj.Version, Content: b64_string, URL: newPackage.URL}
+
+		//check if package already exists
+		if result := models.DB.Where("name = ?", newObject.Name).First(&newObject).RowsAffected; result == 1 {
+			c.JSON(409, "Package exists already.")
+			return
+		}
+
 		models.DB.Create(&newObject)
 
 		//newPackage only used for incoming request -> GET ID FROM newObject
 
-		//c.JSON(201, gin.H{"data": newObject})
+		//print response
+		niceJSON2, err := json.MarshalIndent(newObject, "", " ")
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		fmt.Println("package POST INGEST response:")
+		fmt.Println(string(niceJSON2))
+
+		//attempt to log
 		logger.Printf("Package Ingest Response: \n metadata:\n	Name: %s\n	Version: %s\n	ID: %d\n data:\n	Content: %s\n", newObject.Name, newObject.Version, newObject.ID, newObject.Content)
+
+		//response w/ 201 and attributes
 		c.JSON(201, gin.H{
 			"metadata": gin.H{
 				"Name":    newObject.Name,
@@ -306,7 +282,22 @@ func CreatePackage(c *gin.Context) {
 		repo := split[len(split)-1]
 
 		newObject := models.PackageCreate{Name: repo, Version: packageJsonObj.Version, Content: newPackage.Content, URL: packageJsonObj.Homepage}
+
+		//check if package already exists
+		if result := models.DB.Where("name = ?", newObject.Name).First(&newObject).RowsAffected; result == 1 {
+			c.JSON(409, "Package exists already.")
+			return
+		}
+
 		models.DB.Create(&newObject)
+
+		niceJSON2, err := json.MarshalIndent(newObject, "", " ")
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		fmt.Println("package POST Upload by Zip response:")
+		fmt.Println(string(niceJSON2))
 
 		c.JSON(201, gin.H{
 			"metadata": gin.H{
@@ -319,58 +310,6 @@ func CreatePackage(c *gin.Context) {
 			},
 		})
 
-	}
-
-}
-
-func EncodeZipFile() (b64 string) {
-	//get working directory
-	directory, err := os.Getwd()
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	file, _ := os.Open(directory + "/zip_files/out.zip")
-
-	reader := bufio.NewReader(file)
-	content, _ := ioutil.ReadAll(reader)
-
-	encodedString := base64.StdEncoding.EncodeToString(content)
-
-	return encodedString
-}
-
-func GetZip(url string) {
-
-	//split owner and repository strings from original url for later use
-	split := strings.Split(url, "/")
-	owner := split[len(split)-2]
-	repo := split[len(split)-1]
-
-	//get current working directory for use in filepath
-	directory, err := os.Getwd()
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	//create out file in zip_files dir
-	outFile, err := os.Create(directory + "/zip_files/out.zip")
-	if err != nil {
-		fmt.Println(err)
-	}
-	defer outFile.Close()
-
-	//send get request to correct git repo and get zip file contents
-	resp, err := http.Get("https://github.com/" + owner + "/" + repo + "/archive/master.zip")
-	if err != nil {
-		fmt.Println(err)
-	}
-	defer resp.Body.Close()
-
-	//write response body to zip file created above
-	_, err = io.Copy(outFile, resp.Body)
-	if err != nil {
-		fmt.Println(err)
 	}
 
 }
