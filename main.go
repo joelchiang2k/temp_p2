@@ -78,7 +78,7 @@ func main() {
 		api.GET("/:{id}", RetreivePackage)
 		//api.PUT("/:{id}", ADD FUNC FOR PUT)
 		api.DELETE("/:{id}", DeletePackageById)
-		//api.GET("/:{id}/rate, RatePackage")
+		api.GET("/:{id}/rate, RatePackage")
 		api.POST("/byRegEx", controllers.ByRegex)
 	}
 
