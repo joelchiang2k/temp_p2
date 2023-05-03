@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"bufio"
 	"encoding/json"
 	"ex/part2/metrics"
 	"ex/part2/models"
@@ -85,9 +84,9 @@ func convert_byte_to_string(b []byte) string {
 	return str
 }
 
-func analyze_git(old_url string, url string) score_struct {
+func analyze_git(url string) score_struct {
 	var result score_struct
-	result.Url = old_url
+	result.Url = url
 	result.NetScore = 0.0
 	result.RampUpScore = 0.0
 	result.CorrectnessScore = 0.0
@@ -150,12 +149,12 @@ func analyze_git(old_url string, url string) score_struct {
 }
 
 func Calc_score(url_file string) score_struct {
-	file, _ := os.Open(url_file)
-	defer file.Close()
+	/*file, _ := os.Open(url_file)
+	defer file.Close()*/
 
-	var scores score_struct
+	//var scores score_struct
 	// Process inputted URLs
-	scanner := bufio.NewScanner(file)
+	/*scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
 		if strings.Contains(line, "npmjs") {
@@ -165,26 +164,26 @@ func Calc_score(url_file string) score_struct {
 			scores = result
 		} else {
 			if strings.Contains(line, ".git") {
-				sugar_logger.Infof("URL: " + line)
-				result := analyze_git(line, line)
-				scores = result
-			} else {
+				sugar_logger.Infof("URL: " + line)*/
+	result := analyze_git(url_file)
+	//scores = result
+			/*} else {
 				new_line := line + ".git"
 				sugar_logger.Infof("URL: " + new_line)
 				result := analyze_git(line, new_line)
 				scores = result
 			}
-		}
+		}*/
 
-	}
+	//}
 
 	// sort URLs based on decending order of net score and output as NDJSON format
-	b, err := json.Marshal(scores)
+	/*b, err := json.Marshal(scores)
 	if err != nil {
 		log.Fatalln("Error:", err)
 	}
-	fmt.Print(convert_byte_to_string(b))
-	return scores
+	fmt.Print(convert_byte_to_string(b))*/
+	return result
 }
 
 func init() {
@@ -209,6 +208,11 @@ func init() {
 		atomic_level.SetLevel(zap.FatalLevel)
 	}
 }
+
+/*func CalcScores(url string) score_struct {
+	result := analyze_git(url)
+	return result
+}*/
 
 func RatePackage(c *gin.Context) {
 	var packageToRate models.PackageCreate
