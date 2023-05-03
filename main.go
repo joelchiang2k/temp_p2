@@ -77,7 +77,7 @@ func main() {
 		api.GET("/:{id}", RetreivePackage)
 		api.PUT("/:{id}", controllers.UpdatePackage)
 		api.DELETE("/:{id}", DeletePackageById)
-		//api.GET("/:{id}/rate, RatePackage")
+		api.GET("/:{id}/rate", controllers.RatePackage)
 		api.POST("/byRegEx", controllers.ByRegex)
 	}
 
@@ -137,7 +137,7 @@ func RetreivePackage(c *gin.Context) {
 			fmt.Println(err)
 			return
 
-		}	
+		}
 		fmt.Println("/package/:{id} GET response")
 
 		fmt.Println(string(niceJSON))
@@ -220,7 +220,7 @@ func CreatePackage(c *gin.Context) {
 
 		//check if package already exists
 		if result := models.DB.Where("name = ?", newObject.Name).First(&newObject).RowsAffected; result == 1 {
-			c.JSON(409, "Package exists already.")	
+			c.JSON(409, "Package exists already.")
 			return
 		}
 
@@ -285,7 +285,7 @@ func CreatePackage(c *gin.Context) {
 
 		//check if package already exists
 		if result := models.DB.Where("name = ?", newObject.Name).First(&newObject).RowsAffected; result == 1 {
-			c.JSON(409, "Package exists already.")	
+			c.JSON(409, "Package exists already.")
 			return
 		}
 
