@@ -24,4 +24,7 @@ jobs:
 
       - name: Install go dependencies
         run: go mod download
+      
+      - name: Run golint
+        run: golint ./...
           
