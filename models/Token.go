@@ -5,4 +5,3 @@ type Token struct {
 	Password string `json:"Password"`
 	AuthToken string `json:"AuthToken"`
 }
-

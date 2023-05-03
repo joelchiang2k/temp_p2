@@ -130,45 +130,46 @@ export default function Home({message}) {
       <main>
         <div className={styles.center}>
           <h1> Welcome to 461 Part 2! </h1>
-          <p>By: Ben Brown</p>
         </div>
   {/*      <div>
           <a href="http://localhost:8000/package" target="_blank">
             <button> Sample API button </button>
           </a>
   </div>*/}
-        <div>
-          <button onClick={handleClick}>
-            hello
-          </button>
-        </div>
         {/*<div>message: {message.message}</div>*/}
-        <h3> Create Package From URL</h3>
-        <form onSubmit={handleSubmit}>
-          <label>Enter URL</label>
-          <input
-            type="text" 
-            required
-            value={url}
-            onChange={(e) => setURL(e.target.value)}
-            />
-          <button>Submit</button>
-        </form>
-        <div>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
+          {/*<div style={{display:'flex', alignItems: 'center'}}>*/}
+            <div class="flex-child" style={{ flexGrow: 1, paddingRight: '100px' }}>
+              <h2 style={{paddingBottom: '15px'}}>Package Ingestion From URL</h2>
+              <form onSubmit={handleSubmit}>
+                <label style={{paddingRight: '15px'}}>Enter URL</label>
+                <input
+                  type="text" 
+                  required
+                  value={url}
+                  onChange={(e) => setURL(e.target.value)}
+                  />
+                <button>Submit</button>
+              </form>
+            </div>
+            <div class="flex-child" style={{ flexGrow: 1, paddingLeft: '100px'}}>
+              <h2 style={{paddingBottom: '15px'}}>Upload Package</h2>
+              <FileInput handleSubmit={handleFileSubmit} onZipUpload={handleZipUpload}/>
+            </div>
+          {/*</div>*/}
+        </div>
+
+        <div style={{display: 'flex', justifyContent:'flex-end', paddingRight: '100px', paddingTop: '100px'}}>
           <button onClick={handleReset}>Reset Database</button>
         </div>
-        <center>
-          <h2>Upload Package</h2>
-          <FileInput handleSubmit={handleFileSubmit} onZipUpload={handleZipUpload}/>
-        </center>
 
-        <div>
-          <h1>Packages</h1>
+        <center style={{paddingTop: '75px'}}>
+          <h1 style={{paddingBottom: '15px'}}>Packages</h1>
           <table>
             <thead>
               <tr>
-                <th>ID</th>
-                <th>Name</th> 
+                <th style={{paddingRight: '150px'}}>ID</th>
+                <th style={{paddingRight: '150px'}}>Name</th> 
                 <th>Version</th>
               </tr>
             </thead>
@@ -186,7 +187,7 @@ export default function Home({message}) {
 
             </tbody>
           </table>
-        </div>
+        </center>
       </main>
     </>
   )
