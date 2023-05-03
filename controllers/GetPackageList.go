@@ -7,11 +7,12 @@ import (
 	"io/ioutil"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type packagesMetadataStruct struct {
-	ID string `json:"ID,omitempty"`
-	Name string `json:"Name"`
+	ID      string `json:"ID,omitempty"`
+	Name    string `json:"Name"`
 	Version string `json:"Version"`
 }
 
@@ -21,17 +22,35 @@ type PackageQueryArray struct {
 
 //var packagesToReturn []PackagesMetadataStruct
 func GetPackageList(c *gin.Context) {
+	var token models.Token
+
+	authHeader := c.Request.Header["X-Authorization"]
+	if authHeader == nil {
+		c.JSON(400, "There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid.")
+		return
+	}
+	if len(authHeader) == 0 {
+		c.JSON(400, "There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid.")
+		return
+	}
+	if err := models.DB.Where("AuthToken = ?", authHeader).First(&token).Error; err != gorm.ErrRecordNotFound {
+		fmt.Println("Token found")
+	} else {
+		fmt.Println("Token not found")
+		c.JSON(400, "There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid.")
+		return
+	}
+
 	var newQuery []packagesMetadataStruct
 
 	reqBody, err := ioutil.ReadAll(c.Request.Body)
-	if err!= nil {
+	if err != nil {
 		c.JSON(400, "SThere is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
 		return
 	}
 
-
 	err = json.Unmarshal(reqBody, &newQuery)
-	if err!= nil {
+	if err != nil {
 		c.JSON(400, "There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
 		return
 	}
@@ -39,7 +58,7 @@ func GetPackageList(c *gin.Context) {
 
 	var packagesToReturn []packagesMetadataStruct
 	//var foundPackage PackagesMetadataStruct
-	for _, PackagesMetadataStruct := range newQuery{
+	for _, PackagesMetadataStruct := range newQuery {
 
 		var foundPackage packagesMetadataStruct
 		if err := models.DB.Table("package_creates").Where("name = ?", PackagesMetadataStruct.Name).Find(&foundPackage).Error; err != nil {

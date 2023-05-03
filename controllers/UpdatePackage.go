@@ -8,27 +8,46 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type MetadataStruct struct {
-	ID string `json:"ID"`
-	Name string `json:"Name"`
+	ID      string `json:"ID"`
+	Name    string `json:"Name"`
 	Version string `json:"Version"`
 }
 
 type PackageDataStruct struct {
 	Content string `json:"Content,omitempty"`
-	URL string `json:"URL,omitempty"`
+	URL     string `json:"URL,omitempty"`
 }
 
 type FullPackageData struct {
-	Data PackageDataStruct `json:"data"`
-	Metadata MetadataStruct `json:"metadata"`
+	Data     PackageDataStruct `json:"data"`
+	Metadata MetadataStruct    `json:"metadata"`
 }
 
 func UpdatePackage(c *gin.Context) {
 	var pkg models.PackageCreate
 	var packageToUpdate FullPackageData
+	var token models.Token
+
+	authHeader := c.Request.Header["X-Authorization"]
+	if authHeader == nil {
+		c.JSON(400, "There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid.")
+		return
+	}
+	if len(authHeader) == 0 {
+		c.JSON(400, "There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid.")
+		return
+	}
+	if err := models.DB.Where("AuthToken = ?", authHeader).First(&token).Error; err != gorm.ErrRecordNotFound {
+		fmt.Println("Token found")
+	} else {
+		fmt.Println("Token not found")
+		c.JSON(400, "There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid.")
+		return
+	}
 
 	/*reqBody, _ := ioutil.ReadAll(c.Request.Body)
 	reqBodyJson := string(reqBody)
@@ -45,7 +64,7 @@ func UpdatePackage(c *gin.Context) {
 	if err != nil {
 		fmt.Println(err)
 		return
-	}	
+	}
 	fmt.Println("AFTER BINDING JSON")
 	fmt.Println("package/byid PUT request")
 	fmt.Println(string(niceJSON))
@@ -61,15 +80,14 @@ func UpdatePackage(c *gin.Context) {
 		return
 	}
 
-
 	//validate name, ID, version are matched
-	if(packageToUpdate.Metadata.Name == pkg.Name && packageToUpdate.Metadata.ID == strconv.Itoa(int(pkg.ID)) && packageToUpdate.Metadata.Version == pkg.Version){
-		if(packageToUpdate.Data.Content != ""){
+	if packageToUpdate.Metadata.Name == pkg.Name && packageToUpdate.Metadata.ID == strconv.Itoa(int(pkg.ID)) && packageToUpdate.Metadata.Version == pkg.Version {
+		if packageToUpdate.Data.Content != "" {
 			//models.DB.Update("content", packageToUpdate.Data.Content)
 			models.DB.Table("package_creates").Where("id = ?", c.Param("{id}")).Updates(map[string]interface{}{"content": packageToUpdate.Data.Content})
 			c.JSON(200, "Package was updated.")
 			return
-		}else if(packageToUpdate.Data.URL != ""){
+		} else if packageToUpdate.Data.URL != "" {
 			//operate on url which fucking blows
 			HelperFunctions.GetZip(packageToUpdate.Data.URL)
 			base64string := HelperFunctions.EncodeZipFile()
@@ -77,7 +95,7 @@ func UpdatePackage(c *gin.Context) {
 			c.JSON(200, "Package was updated.")
 			return
 		}
-	}else{
+	} else {
 		c.JSON(404, "ID, Name, and Version do not all match.")
 		return
 	}

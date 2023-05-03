@@ -111,6 +111,17 @@ func main() {
 func DeletePackageById(c *gin.Context) {
 	var packageToDelete models.PackageCreate
 
+	authHeader := c.Request.Header["X-Authorization"]
+	if authHeader == nil {
+		c.JSON(400, "There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid.")
+		return
+	}
+	authCheck := controllers.HandleAuth(authHeader[0])
+	if authCheck == 400 {
+		c.JSON(400, "There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid.")
+		return
+	}
+
 	if err := models.DB.Where("id = ?", c.Param("{id}")).First(&packageToDelete).Error; err != nil {
 		c.JSON(404, "Package does not exist.")
 	}
@@ -125,6 +136,17 @@ func RetreivePackage(c *gin.Context) {
 	//create variable to hold response data
 	var packageToRetreive models.PackageCreate
 
+	authHeader := c.Request.Header["X-Authorization"]
+	if authHeader == nil {
+		c.JSON(400, "There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid.")
+		return
+	}
+	authCheck := controllers.HandleAuth(authHeader[0])
+	if authCheck == 400 {
+		c.JSON(400, "There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid.")
+		return
+	}
+
 	//change so that if id is missing return error
 	if c.Param("{id}") == "/" {
 		c.JSON(400, "There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
@@ -137,7 +159,7 @@ func RetreivePackage(c *gin.Context) {
 			fmt.Println(err)
 			return
 
-		}	
+		}
 		fmt.Println("/package/:{id} GET response")
 
 		fmt.Println(string(niceJSON))
@@ -158,6 +180,17 @@ func RetreivePackage(c *gin.Context) {
 
 func RatePackage(c *gin.Context) {
 	var packageToRate models.PackageCreate
+
+	authHeader := c.Request.Header["X-Authorization"]
+	if authHeader == nil {
+		c.JSON(400, "There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid.")
+		return
+	}
+	authCheck := controllers.HandleAuth(authHeader[0])
+	if authCheck == 400 {
+		c.JSON(400, "There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid.")
+		return
+	}
 
 	if c.Param("{id}") == "/" {
 		c.JSON(400, "There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
@@ -183,6 +216,17 @@ func CreatePackage(c *gin.Context) {
 	//returns error on bad req
 	logger := logger.GetInst()
 	var newPackage PackageCreate
+
+	authHeader := c.Request.Header["X-Authorization"]
+	if authHeader == nil {
+		c.JSON(400, "There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid.")
+		return
+	}
+	authCheck := controllers.HandleAuth(authHeader[0])
+	if authCheck == 400 {
+		c.JSON(400, "There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid.")
+		return
+	}
 
 	if err := c.BindJSON(&newPackage); err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
@@ -220,7 +264,7 @@ func CreatePackage(c *gin.Context) {
 
 		//check if package already exists
 		if result := models.DB.Where("name = ?", newObject.Name).First(&newObject).RowsAffected; result == 1 {
-			c.JSON(409, "Package exists already.")	
+			c.JSON(409, "Package exists already.")
 			return
 		}
 
@@ -285,7 +329,7 @@ func CreatePackage(c *gin.Context) {
 
 		//check if package already exists
 		if result := models.DB.Where("name = ?", newObject.Name).First(&newObject).RowsAffected; result == 1 {
-			c.JSON(409, "Package exists already.")	
+			c.JSON(409, "Package exists already.")
 			return
 		}
 
@@ -385,6 +429,17 @@ func getPackageJsonInfo(packageJsonObj *PackageJsonInfo) {
 }
 
 func Reset(c *gin.Context) {
+
+	authHeader := c.Request.Header["X-Authorization"]
+	if authHeader == nil {
+		c.JSON(401, "You do not have permission to reset the registry.")
+		return
+	}
+	authCheck := controllers.HandleAuth(authHeader[0])
+	if authCheck == 400 {
+		c.JSON(400, "There is missing field(s) in the AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
+		return
+	}
 
 	if tx := models.DB.Exec("TRUNCATE TABLE package_creates RESTART IDENTITY"); tx.Error != nil {
 		//change
