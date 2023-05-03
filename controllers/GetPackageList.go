@@ -52,7 +52,12 @@ func GetPackageList(c *gin.Context) {
 	for _, PackagesMetadataStruct := range newQuery {
 
 		var foundPackage packagesMetadataStruct
-		if err := models.DB.Table("package_creates").Where("name = ?", PackagesMetadataStruct.Name).Find(&foundPackage).Error; err != nil {
+		//if err := models.DB.Table("package_creates").Where("name = ?", PackagesMetadataStruct.Name).Find(&foundPackage).Error; err != nil {
+		if err := models.DB.Table("package_creates").Where("name ~* ?", PackagesMetadataStruct.Name).Find(&foundPackage).Error; err != nil {
+			c.JSON(400, "package not found")
+			return
+		}
+		if(foundPackage.Name != PackagesMetadataStruct.Name){
 			c.JSON(400, "package not found")
 			return
 		}

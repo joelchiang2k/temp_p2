@@ -69,7 +69,10 @@ export default function Home({message}) {
     const dataStruct = { url };
     fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}` + "/package", {
       method: 'POST',
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json",
+                  "X-Authorization": "bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+
+      },
       body: JSON.stringify(dataStruct)
     }).then(response => response.json())
       .then(responseJSON => {
@@ -88,6 +91,10 @@ export default function Home({message}) {
   const handleReset = () => {
     fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}` + "/reset", {
       method: 'DELETE',
+      headers: { "Content-Type": "application/json",
+                  "X-Authorization": "bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+
+      }
     }).then(response => {
       if(!response.ok){
         throw new Error("Failed to reset database");
@@ -99,6 +106,10 @@ export default function Home({message}) {
   const handleDeleteRow = (rowID) => {
     fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}` + "/package/" + String(rowID), {
       method: 'DELETE',
+      headers: { "Content-Type": "application/json",
+                  "X-Authorization": "bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+
+      }
     })
     .then(response => response.json())
     .then(() => {
@@ -179,7 +190,7 @@ export default function Home({message}) {
                   <td>{row.Name}</td>
                   <td>{row.Version}</td>
                   <td>
-                    <button onClick={() => handleDeleteRow(row.ID)}>Delete</button>
+                    <button onClick={() => handleDeleteRow(row.ID) } >Delete</button>
                   </td>
                 </tr>
               ))}
