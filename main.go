@@ -442,12 +442,12 @@ func Reset(c *gin.Context) {
 
 	authHeader := c.Request.Header["X-Authorization"]
 	if authHeader == nil {
-		c.JSON(401, "You do not have permission to reset the registry.")
+		c.JSON(400, "There is missing field(s) in the AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
 		return
 	}
 	authCheck := controllers.HandleAuth(authHeader[0])
 	if authCheck == 400 {
-		c.JSON(400, "There is missing field(s) in the AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
+		c.JSON(401, "You do not have permission to reset the registry.")
 		return
 	}
 
