@@ -45,7 +45,10 @@ function FileInput({ handleSubmit, onZipUpload }) {
     const sendPostRequest = (b64String) => {
         fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}` + "/package", {
             method: 'POST',
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json",
+                        "X-Authorization": "bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+
+            },
             body: JSON.stringify({ Content: b64String})
         })
         .then(response => response.json())
