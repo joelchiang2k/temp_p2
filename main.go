@@ -77,7 +77,7 @@ func main() {
 		api.GET("/:{id}", RetreivePackage)
 		api.PUT("/:{id}", controllers.UpdatePackage)
 		api.DELETE("/:{id}", DeletePackageById)
-		//api.GET("/:{id}/rate, RatePackage")
+		api.GET("/:{id}/rate", controllers.RatePackage)
 		api.POST("/byRegEx", controllers.ByRegex)
 	}
 
@@ -242,6 +242,13 @@ func CreatePackage(c *gin.Context) {
 	fmt.Println(string(niceJSON))
 
 	logger.Printf("Incoming Request for /package POST \nContent: %s\nURL: %s\n", newPackage.Content, newPackage.URL)
+
+	scoreStruct := controllers.CreatePackageRate(newPackage.URL)
+
+	if scoreStruct.NetScore <= 0.5 {
+		c.JSON(424, "Package is not uploaded due to the disqualified rating.")
+		return
+	}
 
 	if newPackage.URL != "" && newPackage.Content != "" {
 		c.JSON(400, "URL and Content both set")
