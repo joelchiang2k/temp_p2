@@ -24,13 +24,11 @@ jobs:
 
       - name: Install go dependencies
         run: go mod download
-      
+
       - name: Install golint
-        run: go get -u golang.org/x/lint/golint
-      
-      - name: Add golint to PATH
-        run: echo "::add-path::$(go env GOPATH)/bin"
+        run: |
+          go get -u golang.org/x/lint/golint
+          echo "export PATH=\$PATH:$(go env GOBIN)" >> $GITHUB_ENV
 
       - name: Run golint
         run: golint ./...
-          
