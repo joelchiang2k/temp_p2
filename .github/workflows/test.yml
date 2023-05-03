@@ -1,0 +1,33 @@
+name: CI Metrics
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Lint with ESLint
+        run: npx eslint . --ext .js,.jsx,.ts,.tsx
+        
+      - name: Install go dependencies
+        run: go mod download
+
+      - name: Run frontend
+        run: npm run dev
+
+      - name: Run backend
+        run: go run main.go
+          
