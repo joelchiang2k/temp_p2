@@ -59,17 +59,17 @@ func Ramp_up_score(personal_token string, url string) (float64, string, string) 
 		return 0, owner, repo
 	}
 
-	ratio := float32(totalCommentLines) / float32(totalCodeLines)
+	ratio := float64(totalCommentLines) / float64(totalCodeLines/100)
 
 	minRatio := 0
 	maxRatio := 1
-	if ratio <= float32(minRatio) {
+	if ratio <= float64(minRatio) {
 		ratio = 0
-	} else if ratio >= float32(maxRatio) {
+	} else if ratio >= float64(maxRatio) {
 		ratio = 1
 	}
 
-	return float64(ratio), owner, repo
+	return ratio, owner, repo
 }
 
 func CommentsAndCode(path string) (int, int, error) {
