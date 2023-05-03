@@ -31,6 +31,7 @@ export default function Home({message}) {
   const [postName, setPostName] = useState('');
   const [postVersion, setPostVersion] = useState('');
   const [rows, setRows] = useState([]);
+  const [RegEx, setRegex] = useState('');
   
 
   useEffect(() => {
@@ -178,6 +179,19 @@ export default function Home({message}) {
     })
     .catch(error => console.error(error));
   }
+
+  const handleRegex = (e) => {
+    const dataStruct = { RegEx };
+    fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}` + "/package" + "/byRegEx", {
+      method: 'POST',
+      headers: { "Content-Type": "application/json",
+                  "X-Authorization": "bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+      },
+      body: JSON.stringify(dataStruct)
+    })
+    .then(response => response.json())
+    .then(data => window.alert(JSON.stringify(data)))
+  }
   /*const sendPostRequest = (b64String) => {
       fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}`, {
           method: 'POST',
@@ -209,11 +223,10 @@ export default function Home({message}) {
   </div>*/}
         {/*<div>message: {message.message}</div>*/}
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
-          {/*<div style={{display:'flex', alignItems: 'center'}}>*/}
-            <div class="flex-child" style={{ flexGrow: 1, paddingRight: '100px' }}>
-              <h2 style={{paddingBottom: '15px'}}>Package Ingestion From URL</h2>
+            <div class="flex-child" style={{ flexGrow: 1}}>
+              <h2 style={{paddingBottom: '15px', paddingLeft: '200px'}}>Package Ingestion From URL</h2>
               <form onSubmit={handleSubmit}>
-                <label style={{paddingRight: '15px'}}>Enter URL</label>
+                <label style={{paddingRight: '15px', paddingLeft: '200px'}}>Enter URL</label>
                 <input
                   type="text" 
                   required
@@ -227,9 +240,21 @@ export default function Home({message}) {
               <h2 style={{paddingBottom: '15px'}}>Upload Package</h2>
               <FileInput handleSubmit={handleFileSubmit} onZipUpload={handleZipUpload}/>
             </div>
-          {/*</div>*/}
         </div>
 
+        <div style={{paddingTop: '100px', paddingLeft: '200px'}}>
+          <h2>Package Search</h2> 
+          <form onSubmit={handleRegex}>
+            <label>Package Name:</label>
+            <input
+              type="text"
+              required
+              value={RegEx}
+              onChange={(e) => setRegex(e.target.value)}
+              />
+            <button>Search</button>
+          </form>
+        </div>
         <div style={{display: 'flex', justifyContent:'flex-end', paddingRight: '100px', paddingTop: '100px'}}>
           <button onClick={handleReset}>Reset Database</button>
         </div>
@@ -250,10 +275,13 @@ export default function Home({message}) {
                   <td>{row.Name}</td>
                   <td>{row.Version}</td>
                   <td>
-                    <button onClick={() => handleDeleteRow(row.ID) }>Delete</button>
+                    <button onClick={() => handleRateRow(row.ID)}>Rate</button>
                   </td>
                   <td>
-                    <button onClick={() => handleRateRow(row.ID)}>Rate</button>
+                    <button>Update</button>
+                  </td>
+                  <td>
+                    <button onClick={() => handleDeleteRow(row.ID) }>Delete</button>
                   </td>
                 </tr>
               ))}

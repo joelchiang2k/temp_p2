@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"ex/part2/models"
+	"fmt"
 
 	"github.com/gin-gonic/gin"
 )
@@ -45,7 +46,12 @@ func ByRegex(c *gin.Context) {
 	//	models.DB.ScanRows(rows, &matchedPackages)
 		var match models.PackageCreate 
 		//rows.Scan(&pName, &pVersion)
+		//err := rows.Scan(&match.Name, &match.Content, &match.ID, &match.Version, &match.URL)
 		err := rows.Scan(&match.Name, &match.Content, &match.ID, &match.Version, &match.URL)
+		fmt.Println(match.Name)
+		fmt.Println(match.Version)
+		/*fmt.Println(match.URL)
+		fmt.Println(match.ID)*/
 		if err != nil {
 			panic(err)
 		}
