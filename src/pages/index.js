@@ -4,6 +4,7 @@ import { Inter } from 'next/font/google'
 import styles from '@/styles/Home.module.css'
 import { useState, useEffect } from 'react'
 import FileInput from './zipUpload'
+import { output } from '../../next.config.cjs'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -108,13 +109,72 @@ export default function Home({message}) {
       method: 'DELETE',
       headers: { "Content-Type": "application/json",
                   "X-Authorization": "bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
-
       }
     })
     .then(response => response.json())
     .then(() => {
       const newRows = rows.filter(row => row.ID !== rowID);
       setRows(newRows)
+    })
+    .catch(error => console.error(error));
+  }
+
+  const handleRateRow = (rowID) => {
+    fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}` + "/package/" + String(rowID) + "/rate", {
+      method: 'GET',
+      headers: { "Content-Type": "application/json",
+                  "X-Authorization": "bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+      }
+    })
+    .then(response => response.json())
+    //.then(data => window.alert(JSON.stringify(data)))
+    .then(data => {
+      const windowObj = document.createElement('div');
+
+      windowObj.style.display = 'flex';
+      windowObj.style.flexDirection = 'column';
+      windowObj.style.alignItems = 'center';
+      windowObj.style.justifyContent = 'center';
+      windowObj.style.position = 'fixed';
+      windowObj.style.zIndex = '9999';
+      windowObj.style.top = '0';
+      windowObj.style.left = '0';
+      windowObj.style.width = '100vw';
+      windowObj.style.height = '100vh';
+      windowObj.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+
+      const windowContentObj = document.createElement('div');
+      windowContentObj.style.display = 'flex';
+      windowContentObj.style.flexDirection = 'column';
+      windowContentObj.style.alignItems = 'center';
+      windowContentObj.style.justifyContent = 'center';
+      windowContentObj.style.width = '50%';
+      windowContentObj.style.backgroundColor = 'blue';
+      windowContentObj.style.padding = '2rem';
+
+      const headerObj = document.createElement('h2');
+      headerObj.innerText = "Metrics for Package with ID:" + String(rowID);
+
+      const outputObj = document.createElement('textarea');
+      outputObj.value = JSON.stringify(data, null, 2);
+      outputObj.style.width = '100%';
+      outputObj.style.minHeight = '10rem';
+      outputObj.style.resize = 'none';
+      outputObj.style.padding = '0.5rem';
+      
+      windowContentObj.appendChild(headerObj);
+      windowContentObj.appendChild(outputObj);
+      
+      const xButton = document.createElement('button');
+      xButton.innerText = "x";
+      xButton.addEventListener('click', () => {
+        windowObj.remove();
+      })
+      
+      windowContentObj.appendChild(xButton);
+
+      windowObj.appendChild(windowContentObj);
+      document.body.appendChild(windowObj);
     })
     .catch(error => console.error(error));
   }
@@ -190,7 +250,10 @@ export default function Home({message}) {
                   <td>{row.Name}</td>
                   <td>{row.Version}</td>
                   <td>
-                    <button onClick={() => handleDeleteRow(row.ID) } >Delete</button>
+                    <button onClick={() => handleDeleteRow(row.ID) }>Delete</button>
+                  </td>
+                  <td>
+                    <button onClick={() => handleRateRow(row.ID)}>Rate</button>
                   </td>
                 </tr>
               ))}

@@ -240,6 +240,14 @@ func RatePackage(c *gin.Context) {
 	fmt.Println("packageToRate.URL", packageToRate.URL)
 	scores = Calc_score(packageToRate.URL) //return analyze git
 
+	niceJSON2, err := json.MarshalIndent(scores, "", " ")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println("package/:{id}/rate response:")
+	fmt.Println(string(niceJSON2))
+
 	c.JSON(200, gin.H{
 		"BusFactor":            scores.BusFactorScore,
 		"Correctness":          scores.CorrectnessScore,
