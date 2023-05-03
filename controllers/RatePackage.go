@@ -226,12 +226,15 @@ func RatePackage(c *gin.Context) {
 	}
 	if err := models.DB.Where("Auth_token = ?", authHeader).First(&token).Error; err != nil {
 		fmt.Println("Token not found")
-		c.JSON(400, "There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid.")
+		c.JSON(400, "There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
+		return
 	}
 	if c.Param("{id}") == "/" {
 		c.JSON(400, "There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
+		return
 	} else if err := models.DB.Where("id = ?", c.Param("{id}")).First(&packageToRate).Error; err != nil {
 		c.JSON(404, "Package does not exist.")
+		return
 	}
 	var scores score_struct
 	fmt.Println("packageToRate.URL", packageToRate.URL)

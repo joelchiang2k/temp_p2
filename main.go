@@ -124,6 +124,7 @@ func DeletePackageById(c *gin.Context) {
 
 	if err := models.DB.Where("id = ?", c.Param("{id}")).First(&packageToDelete).Error; err != nil {
 		c.JSON(404, "Package does not exist.")
+		return
 	}
 
 	models.DB.Delete(&packageToDelete)
@@ -150,8 +151,10 @@ func RetreivePackage(c *gin.Context) {
 	//change so that if id is missing return error
 	if c.Param("{id}") == "/" {
 		c.JSON(400, "There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
+		return
 	} else if err := models.DB.Where("id = ?", c.Param("{id}")).First(&packageToRetreive).Error; err != nil {
 		c.JSON(404, "Package does not exist.")
+		return
 	} else {
 		//logging purposes
 		niceJSON, err := json.MarshalIndent(packageToRetreive, "", " ")
