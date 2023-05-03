@@ -165,15 +165,16 @@ func Calc_score(url_file string) score_struct {
 		} else {
 			if strings.Contains(line, ".git") {
 				sugar_logger.Infof("URL: " + line)*/
+	fmt.Println("url_file being passed into calc_score", url_file)
 	result := analyze_git(url_file)
 	//scores = result
-			/*} else {
-				new_line := line + ".git"
-				sugar_logger.Infof("URL: " + new_line)
-				result := analyze_git(line, new_line)
-				scores = result
-			}
-		}*/
+	/*} else {
+			new_line := line + ".git"
+			sugar_logger.Infof("URL: " + new_line)
+			result := analyze_git(line, new_line)
+			scores = result
+		}
+	}*/
 
 	//}
 
@@ -216,21 +217,34 @@ func init() {
 
 func RatePackage(c *gin.Context) {
 	var packageToRate models.PackageCreate
+	var token models.Token
+
+	authHeader := c.Request.Header.Get("X-Authorization")
+	if len(authHeader) == 0 {
+		c.JSON(400, "There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
+		return
+	}
+	if err := models.DB.Where("Auth_token = ?", authHeader).First(&token).Error; err != nil {
+		fmt.Println("Token not found")
+		c.JSON(400, "There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid.")
+	}
 	if c.Param("{id}") == "/" {
 		c.JSON(400, "There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
 	} else if err := models.DB.Where("id = ?", c.Param("{id}")).First(&packageToRate).Error; err != nil {
 		c.JSON(404, "Package does not exist.")
 	}
 	var scores score_struct
+	fmt.Println("packageToRate.URL", packageToRate.URL)
 	scores = Calc_score(packageToRate.URL) //return analyze git
 
 	c.JSON(200, gin.H{
-
 		"BusFactor":            scores.BusFactorScore,
 		"Correctness":          scores.CorrectnessScore,
 		"RampUp":               scores.RampUpScore,
 		"ResponsiveMaintainer": scores.ResponsivnessMaintainerScore,
 		"LicenseScore":         scores.LicenseScore,
 		"GoodPinningPractice":  scores.DependencyScore,
+		"PullRequest":          scores.CodeReviewScore,
+		"NetScore":             scores.NetScore,
 	})
 }

@@ -28,14 +28,14 @@ func ConnectDatabase() {
 	}
 
 	defaultUser := Token{
-		Username:  "ece30861defaultadminuser",
-		Password:  "correcthorsebatterystaple123(!__+@**(A'\"`;DROP TABLE packages;",
-		AuthToken: "bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+		Username:   "ece30861defaultadminuser",
+		Password:   "correcthorsebatterystaple123(!__+@**(A'\"`;DROP TABLE packages;",
+		Auth_token: "bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
 	}
 
 	var user Token
 
-	check := database.Where("Username = ?", defaultUser.Username).First(&user)
+	check := database.Where("username = ?", defaultUser.Username).First(&user)
 	if check.Error == gorm.ErrRecordNotFound {
 		database.Create(&defaultUser)
 	}

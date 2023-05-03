@@ -1,7 +1,7 @@
 package models
 
 type Token struct {
-	Username string `json:"Username"`
-	Password string `json:"Password"`
-	AuthToken string `json:"AuthToken"`
+	Username   string `json:"username"`
+	Password   string `json:"password"`
+	Auth_token string `json:"auth_token"`
 }

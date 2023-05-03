@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"ex/part2/models"
-	"fmt"
+	// "fmt"
 
 	"github.com/gin-gonic/gin"
 )
@@ -51,8 +51,7 @@ func Authenticate(c *gin.Context) {
 		if err := models.DB.Where("username = ? AND password = ?", username, password).First(&foundToken).Error; err != nil {
 			c.JSON(404, "The user or password is invalid.")
 		} else {
-			c.JSON(200, foundToken.AuthToken)
-			fmt.Println(foundToken.AuthToken)
+			c.JSON(200, foundToken.Auth_token)
 		}
 	} else {
 		c.JSON(401, "The user or password is invalid.")
