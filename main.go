@@ -246,19 +246,19 @@ func CreatePackage(c *gin.Context) {
 
 	logger.Printf("Incoming Request for /package POST \nContent: %s\nURL: %s\n", newPackage.Content, newPackage.URL)
 
-	scoreStruct := controllers.CreatePackageRate(newPackage.URL)
-
-	if scoreStruct.NetScore <= 0.5 {
-		c.JSON(424, "Package is not uploaded due to the disqualified rating.")
-		return
-	}
-
 	if newPackage.URL != "" && newPackage.Content != "" {
 		c.JSON(400, "URL and Content both set")
 	} else if newPackage.URL == "" && newPackage.Content == "" {
 		c.JSON(400, "Neither URL or Content set.")
 	} else if newPackage.URL != "" {
 		//process zip and upload to db
+		
+		scoreStruct := controllers.CreatePackageRate(newPackage.URL)
+
+		if scoreStruct.NetScore <= 0.5 {
+			c.JSON(424, "Package is not uploaded due to the disqualified rating.")
+			return
+		}
 
 		HelperFunctions.GetZip(newPackage.URL)
 
