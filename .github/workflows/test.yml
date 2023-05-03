@@ -21,13 +21,7 @@ jobs:
 
       - name: Lint with ESLint
         run: npx eslint . --ext .js,.jsx,.ts,.tsx
-        
+
       - name: Install go dependencies
         run: go mod download
-
-      - name: Run frontend
-        run: npm run dev
-
-      - name: Run backend
-        run: go run main.go
           
